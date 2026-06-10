@@ -1,327 +1,371 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Planning Semaine</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', Arial, sans-serif; background: #eef1f7; min-height: 100vh; padding: 32px 20px; }
-    h1 { text-align: center; font-size: 20px; font-weight: 700; color: #1a2744; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 20px; }
-    .toolbar { background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 14px 16px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 20px; max-width: 1040px; margin-left: auto; margin-right: auto; }
-    .toolbar label { font-size: 11px; font-weight: 600; color: #7a8aaa; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 3px; }
-    .field { display: flex; flex-direction: column; }
-    .toolbar input[type=text] { font-size: 13px; padding: 7px 11px; border: 1px solid #d0d8e8; border-radius: 6px; background: #f7f9fc; color: #1a2744; width: 180px; outline: none; transition: border-color 0.15s; }
-    .toolbar input[type=text]:focus { border-color: #3a7bd5; background: #fff; }
-    .toolbar select { font-size: 13px; padding: 7px 10px; border: 1px solid #d0d8e8; border-radius: 6px; background: #f7f9fc; color: #1a2744; outline: none; cursor: pointer; transition: border-color 0.15s; }
-    .toolbar select:focus { border-color: #3a7bd5; }
-    .color-row { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; margin-top: 2px; }
-    .color-dot { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.1s, border-color 0.1s; }
-    .color-dot:hover { transform: scale(1.15); }
-    .color-dot.selected { border-color: #1a2744; transform: scale(1.1); }
-    .btn-add { font-size: 13px; font-weight: 600; padding: 8px 20px; border: none; border-radius: 6px; background: #1a2744; color: #fff; cursor: pointer; letter-spacing: 0.04em; transition: background 0.15s; margin-top: auto; }
-    .btn-add:hover { background: #2a3a5c; }
-    .planning-wrap { max-width: 1040px; margin: 0 auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; display: flex; }
-    .time-col { width: 56px; flex-shrink: 0; background: #f0f3fa; border-right: 1px solid #d8dee8; }
-    .time-col .hdr { height: 36px; }
-    .time-slot { height: 44px; display: flex; align-items: flex-start; justify-content: flex-end; padding: 3px 8px 0 0; font-size: 11px; color: #8a9ab0; border-top: 1px solid #e4e8f0; position: relative; top: -8px; }
-    .days-area { flex: 1; overflow: hidden; }
-    .days-header { display: grid; grid-template-columns: repeat(5, 1fr); background: #1a2744; }
-    .day-hdr { color: #fff; font-size: 12px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; text-align: center; padding: 10px 4px; border-left: 1px solid #2a3a5c; height: 36px; display: flex; align-items: center; justify-content: center; }
-    .days-body { display: grid; grid-template-columns: repeat(5, 1fr); position: relative; }
-    .day-col { border-left: 1px solid #e4e8f0; position: relative; }
-    .cell { height: 44px; border-top: 1px solid #e4e8f0; position: relative; }
-    .cell-hl { position: absolute; left: 0; right: 0; pointer-events: none; border-top: 1px dashed #eaeef5; }
-    .cell-hl.q2 { top: 22px; }
-    .cell-hl.q3 { top: 33px; }
-    .cell::after { content: ''; position: absolute; left: 0; right: 0; top: 11px; border-top: 1px dashed #eaeef5; pointer-events: none; }
-    .task-block { position: absolute; left: 3px; right: 3px; border-radius: 5px; font-size: 11px; font-weight: 600; padding: 3px 6px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; cursor: pointer; z-index: 5; display: flex; align-items: center; gap: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.12); transition: opacity 0.1s; }
-    .task-block:hover { opacity: 0.88; }
-    .task-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-    .task-del { opacity: 0; font-size: 14px; line-height: 1; cursor: pointer; flex-shrink: 0; transition: opacity 0.15s; }
-    .task-block:hover .task-del { opacity: 1; }
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(10,20,50,0.4); z-index: 200; align-items: center; justify-content: center; }
-    .modal-overlay.open { display: flex; }
-    .modal { background: #fff; border-radius: 12px; padding: 24px; width: 340px; box-shadow: 0 8px 32px rgba(0,0,0,0.18); }
-    .modal h3 { font-size: 15px; font-weight: 700; color: #1a2744; margin-bottom: 16px; }
-    .modal label { font-size: 11px; font-weight: 600; color: #7a8aaa; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-top: 12px; margin-bottom: 4px; }
-    .modal input, .modal select { width: 100%; font-size: 13px; padding: 7px 10px; border: 1px solid #d0d8e8; border-radius: 6px; background: #f7f9fc; color: #1a2744; outline: none; }
-    .modal input:focus, .modal select:focus { border-color: #3a7bd5; }
-    .mrow { display: flex; gap: 10px; }
-    .mrow > * { flex: 1; }
-    .modal-btns { display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end; }
-    .modal-btns button { font-size: 13px; font-weight: 600; padding: 8px 18px; border: 1px solid #d0d8e8; border-radius: 6px; cursor: pointer; background: #f7f9fc; color: #1a2744; transition: background 0.1s; }
-    .modal-btns .btn-confirm { background: #1a2744; color: #fff; border-color: #1a2744; }
-    .modal-btns .btn-confirm:hover { background: #2a3a5c; }
-    .modal-btns button:hover { background: #e4e8f0; }
-    .msg-error { font-size: 12px; color: #e04040; margin-top: 6px; min-height: 16px; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Export Articles — Outil de transformation Excel</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: Arial, sans-serif;
+    background: #F0F4F8;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .card {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 580px;
+  }
+
+  .header { text-align: center; margin-bottom: 2rem; }
+  .header .icon { font-size: 48px; margin-bottom: 0.5rem; }
+  .header h1 { font-size: 22px; font-weight: 700; color: #1A2B4A; }
+  .header p  { font-size: 14px; color: #6B7A99; margin-top: 6px; }
+
+  /* Drop zone */
+  .drop-zone {
+    border: 2px dashed #B5D4F4;
+    border-radius: 12px;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    background: #F5F9FF;
+    position: relative;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: #378ADD;
+    background: #EBF4FF;
+  }
+  .drop-zone input[type=file] {
+    position: absolute; inset: 0; opacity: 0;
+    cursor: pointer; width: 100%; height: 100%;
+  }
+  .drop-zone .dz-icon { font-size: 40px; margin-bottom: 10px; }
+  .drop-zone .dz-title { font-size: 15px; font-weight: 600; color: #1A2B4A; }
+  .drop-zone .dz-sub   { font-size: 13px; color: #6B7A99; margin-top: 5px; }
+  .drop-zone .dz-sub strong { color: #185FA5; }
+
+  /* File badge */
+  .file-badge {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    background: #E6F1FB;
+    border-radius: 8px;
+    padding: 8px 14px;
+    margin-top: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #0C447C;
+  }
+  .file-badge.visible { display: flex; }
+
+  /* Mapping table */
+  .mapping-card {
+    background: #F8FAFB;
+    border: 1px solid #DDE3EE;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-top: 1.5rem;
+  }
+  .mapping-card h3 {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #8A97B0;
+    margin-bottom: 12px;
+  }
+  .mapping-row {
+    display: grid;
+    grid-template-columns: 90px 1fr 20px 1fr;
+    gap: 6px 10px;
+    align-items: center;
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+  .mapping-row:last-child { margin-bottom: 0; }
+  .tag {
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 5px; padding: 2px 8px; font-size: 12px; font-weight: 700;
+  }
+  .tag-src  { background: #FAEEDA; color: #633806; }
+  .tag-dest { background: #EAF3DE; color: #27500A; }
+  .tag-fix  { background: #EDE9FE; color: #4C1D95; }
+  .arrow { color: #8A97B0; text-align: center; }
+  .map-label { color: #6B7A99; }
+  .map-value { color: #1A2B4A; font-weight: 600; }
+
+  /* Divider */
+  .divider { border: none; border-top: 1px solid #DDE3EE; margin: 0.6rem 0; }
+
+  /* Generate button */
+  .btn-generate {
+    width: 100%;
+    margin-top: 1.5rem;
+    padding: 13px;
+    background: #185FA5;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .btn-generate:hover:not(:disabled) { background: #0C447C; }
+  .btn-generate:active:not(:disabled) { transform: scale(0.98); }
+  .btn-generate:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  /* Progress bar */
+  .progress-wrap { margin-top: 12px; display: none; }
+  .progress-track { height: 5px; background: #DDE3EE; border-radius: 3px; overflow: hidden; }
+  .progress-fill  { height: 100%; background: #378ADD; width: 0%; transition: width 0.3s; border-radius: 3px; }
+
+  /* Status */
+  .status {
+    margin-top: 12px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    display: none;
+  }
+  .status.info    { background: #E6F1FB; color: #0C447C; }
+  .status.success { background: #EAF3DE; color: #27500A; }
+  .status.error   { background: #FCEBEB; color: #7A1F1F; }
+
+  /* Download button */
+  .btn-download {
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px;
+    background: #0F6E56;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.15s;
+    text-decoration: none;
+  }
+  .btn-download:hover { background: #085041; }
+  .btn-download.visible { display: flex; }
+
+  .footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 12px;
+    color: #B0BBCC;
+  }
+</style>
 </head>
 <body>
 
-<h1>Planning de la semaine</h1>
+<div class="card">
 
-<!-- TOOLBAR -->
-<div class="toolbar">
-  <div class="field">
-    <label>Tâche</label>
-    <input type="text" id="taskName" placeholder="Nom de la tâche…" />
+  <div class="header">
+    <div class="icon">💲🪙 💵</div>
+    <h1>Generateur du fichier d'import de prix pour RFX</h1>
+    <p>Transformez votre fichier source <strong>2008 - Alimentation VERA - 5322A - Nevers-fr-fr.xlsx</strong> en fichier prêt à l'import pour RFX</p>
   </div>
-  <div class="field">
-    <label>Jour</label>
-    <select id="daySelect">
-      <option value="0">Lundi</option>
-      <option value="1">Mardi</option>
-      <option value="2">Mercredi</option>
-      <option value="3">Jeudi</option>
-      <option value="4">Vendredi</option>
-    </select>
-  </div>
-  <div class="field">
-    <label>Début</label>
-    <select id="startH"></select>
-  </div>
-  <div class="field">
-    <label>Fin</label>
-    <select id="endH"></select>
-  </div>
-  <div class="field">
-    <label>Couleur</label>
-    <div class="color-row" id="colorPicker"></div>
-  </div>
-  <button class="btn-add" onclick="addTask()">+ Ajouter</button>
-  <span class="msg-error" id="errorMsg"></span>
-</div>
 
-<!-- PLANNING -->
-<div class="planning-wrap">
-  <div class="time-col">
-    <div class="hdr"></div>
-    <div id="timeSlots"></div>
+  <!-- Zone de dépôt -->
+  <div class="drop-zone" id="dropZone">
+    <input type="file" id="fileInput" accept=".xlsx,.xls" />
+    <div class="dz-icon">📂</div>
+    <div class="dz-title">Déposez votre fichier Excel ici</div>
+    <div class="dz-sub">ou cliquez pour parcourir &nbsp;—&nbsp; le nom doit commencer par <strong>2008</strong></div>
   </div>
-  <div class="days-area">
-    <div class="days-header">
-      <div class="day-hdr" style="border-left:none">Lundi</div>
-      <div class="day-hdr">Mardi</div>
-      <div class="day-hdr">Mercredi</div>
-      <div class="day-hdr">Jeudi</div>
-      <div class="day-hdr">Vendredi</div>
-    </div>
-    <div class="days-body" id="daysBody"></div>
-  </div>
-</div>
 
-<!-- MODAL EDIT -->
-<div class="modal-overlay" id="modalOverlay">
-  <div class="modal" id="modalContent"></div>
+  <div class="file-badge" id="fileBadge">
+    ✅ <span id="fileName"></span>
+  </div>
+
+  <!-- Description -->
+  <div class="mapping-card">
+    <p style="font-size:14px; color:#1A2B4A; line-height:1.65;">
+      Cet outil convertit l'extraction des prix depuis l'<strong>ERP</strong> afin de générer le fichier d'intégration des prix dans <strong>Reflex</strong>.
+    </p>
+  </div>
+
+  <!-- Bouton générer -->
+  <button class="btn-generate" id="btnGenerate" disabled>
+    ⚙️ &nbsp;Générer Export_Articles.csv
+  </button>
+
+  <!-- Barre de progression -->
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+
+  <!-- Statut -->
+  <div class="status" id="statusBar"></div>
+
+  <!-- Bouton téléchargement -->
+  <a class="btn-download" id="downloadBtn" download="Export_Articles.csv">
+    ⬇️ &nbsp;Télécharger Export_Articles.csv
+  </a>
+
+  <div class="footer">Fonctionne 100 % dans votre navigateur — aucune donnée envoyée sur internet</div>
 </div>
 
 <script>
-  const HOURS_START = 7;
-  const HOURS_END   = 20;
-  const CELL_H      = 44;   // px par heure
-  const QH          = CELL_H / 4; // 11px par quart d'heure
+const fileInput    = document.getElementById('fileInput');
+const dropZone     = document.getElementById('dropZone');
+const fileBadge    = document.getElementById('fileBadge');
+const fileNameEl   = document.getElementById('fileName');
+const btnGenerate  = document.getElementById('btnGenerate');
+const progressWrap = document.getElementById('progressWrap');
+const progressFill = document.getElementById('progressFill');
+const statusBar    = document.getElementById('statusBar');
+const downloadBtn  = document.getElementById('downloadBtn');
 
-  const COLORS = [
-    { bg: '#3a7bd5', fg: '#fff',     name: 'Bleu'   },
-    { bg: '#e06030', fg: '#fff',     name: 'Orange' },
-    { bg: '#f5c400', fg: '#7a5f00', name: 'Jaune'  },
-    { bg: '#27ae60', fg: '#fff',     name: 'Vert'   },
-    { bg: '#8e44ad', fg: '#fff',     name: 'Violet' },
-    { bg: '#8a9ab0', fg: '#1e2d44', name: 'Gris'   },
-    { bg: '#e74c3c', fg: '#fff',     name: 'Rouge'  },
-  ];
+let workbookData = null;
 
-  let selectedColor = 0;
-  let tasks = [];
-  let editIdx = -1;
+function showStatus(msg, type) {
+  statusBar.textContent = msg;
+  statusBar.className = 'status ' + type;
+  statusBar.style.display = 'block';
+}
 
-  /* Convertit une valeur décimale (ex: 9.75) en label "9h45" */
-  function toLabel(v) {
-    const h = Math.floor(v);
-    const m = Math.round((v - h) * 60);
-    return h + 'h' + (m === 0 ? '00' : m);
+function setProgress(pct) {
+  progressWrap.style.display = 'block';
+  progressFill.style.width = pct + '%';
+  if (pct >= 100) setTimeout(() => { progressWrap.style.display = 'none'; }, 700);
+}
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', () => { if (fileInput.files[0]) handleFile(fileInput.files[0]); });
+
+function handleFile(file) {
+  const name = file.name;
+  downloadBtn.classList.remove('visible');
+  statusBar.style.display = 'none';
+
+  if (!name.match(/^2008/i)) {
+    showStatus('⚠ Le nom du fichier doit commencer par "2008". Reçu : ' + name, 'error');
+    btnGenerate.disabled = true;
+    return;
+  }
+  if (!name.match(/\.(xlsx|xls)$/i)) {
+    showStatus('⚠ Format non supporté. Utilisez un fichier .xlsx ou .xls.', 'error');
+    return;
   }
 
-  /* Génère les options au quart d'heure pour un <select> */
-  function buildTimeOptions(sel, fromH, toH, defaultVal) {
-    sel.innerHTML = '';
-    for (let h = fromH; h <= toH; h++) {
-      for (let q = 0; q < 4; q++) {
-        if (h === toH && q > 0) break;
-        const v = h + q * 0.25;
-        const o = document.createElement('option');
-        o.value = v;
-        o.textContent = toLabel(v);
-        if (v === defaultVal) o.selected = true;
-        sel.appendChild(o);
+  fileNameEl.textContent = name;
+  fileBadge.classList.add('visible');
+  showStatus('Lecture du fichier…', 'info');
+  setProgress(20);
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+      workbookData = wb;
+      setProgress(60);
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+      if (range.e.c < 81) {
+        showStatus('⚠ Le fichier n\'a que ' + (range.e.c + 1) + ' colonnes. La colonne CD (colonne 82) est introuvable.', 'error');
+        setProgress(0); progressWrap.style.display = 'none';
+        btnGenerate.disabled = true;
+        return;
       }
+      setProgress(100);
+      showStatus('✓ Fichier chargé — ' + range.e.r + ' lignes détectées.', 'success');
+      btnGenerate.disabled = false;
+    } catch(err) {
+      showStatus('Erreur de lecture : ' + err.message, 'error');
+      progressWrap.style.display = 'none';
     }
-  }
+  };
+  reader.readAsArrayBuffer(file);
+}
 
-  /* ── Colonne horaire ── */
-  function buildTimeCol() {
-    const c = document.getElementById('timeSlots');
-    for (let h = HOURS_START; h <= HOURS_END; h++) {
-      const d = document.createElement('div');
-      d.className = 'time-slot';
-      d.textContent = h + 'h';
-      c.appendChild(d);
-    }
-  }
+btnGenerate.addEventListener('click', () => {
+  if (!workbookData) return;
+  showStatus('Génération en cours…', 'info');
+  setProgress(10);
+  downloadBtn.classList.remove('visible');
 
-  /* ── Colonnes des jours ── */
-  function buildDays() {
-    const body = document.getElementById('daysBody');
-    body.innerHTML = '';
-    const totalRows = HOURS_END - HOURS_START;
-    for (let d = 0; d < 5; d++) {
-      const col = document.createElement('div');
-      col.className = 'day-col';
-      col.id = 'col-' + d;
-      if (d === 0) col.style.borderLeft = 'none';
-      for (let r = 0; r < totalRows; r++) {
-        const cell = document.createElement('div');
-        cell.className = 'cell';
-        /* Lignes de quart internes (30 min et 45 min via CSS ::after pour 15 min) */
-        [2, 3].forEach(q => {
-          const hl = document.createElement('div');
-          hl.className = 'cell-hl q' + q;
-          cell.appendChild(hl);
-        });
-        col.appendChild(cell);
+  setTimeout(() => {
+    try {
+      const ws_src = workbookData.Sheets[workbookData.SheetNames[0]];
+      const range  = XLSX.utils.decode_range(ws_src['!ref']);
+      const COL_B  = 1;
+      const COL_CD = 81;
+
+      function formatPrix(val) {
+        if (val === null || val === undefined || val === '') return '';
+        const num = parseFloat(String(val).replace(',', '.'));
+        if (isNaN(num)) return String(val);
+        return num.toFixed(3).replace('.', ',');
       }
-      body.appendChild(col);
+
+      function csvEscape(v) {
+        const s = (v === null || v === undefined) ? '' : String(v);
+        if (s.includes(';') || s.includes('"') || s.includes('\n')) return '"' + s.replace(/"/g, '""') + '"';
+        return s;
+      }
+
+      const rows = [["Activité", "Code Article", "Variante Logistique", "Prix"]];
+      setProgress(30);
+
+      for (let r = 1; r <= range.e.r; r++) {
+        const cellB  = ws_src[XLSX.utils.encode_cell({ r, c: COL_B  })];
+        const cellCD = ws_src[XLSX.utils.encode_cell({ r, c: COL_CD })];
+        const valB   = cellB  ? cellB.v  : null;
+        const valCD  = cellCD ? cellCD.v : null;
+        if (valB === null && valCD === null) continue;
+        rows.push(["NE1", valB, "10", formatPrix(valCD)]);
+      }
+
+      setProgress(70);
+
+      // Génération CSV UTF-8 avec BOM (pour Excel français)
+      const csvLines = rows.map(row => row.map(csvEscape).join(';'));
+      const csvContent = '\uFEFF' + csvLines.join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      downloadBtn.href = URL.createObjectURL(blob);
+      downloadBtn.download = 'Export_Articles.csv';
+      downloadBtn.classList.add('visible');
+
+      setProgress(100);
+      showStatus('✓ ' + (rows.length - 1) + ' lignes exportées avec succès.', 'success');
+    } catch(err) {
+      showStatus('Erreur : ' + err.message, 'error');
+      progressWrap.style.display = 'none';
     }
-  }
-
-  /* ── Rendu des tâches ── */
-  function renderTasks() {
-    document.querySelectorAll('.task-block').forEach(el => el.remove());
-    tasks.forEach((t, idx) => {
-      const col = document.getElementById('col-' + t.day);
-      if (!col) return;
-      const c = COLORS[t.color];
-      const top    = (t.start - HOURS_START) * CELL_H;
-      const height = Math.max((t.end - t.start) * CELL_H - 2, 10);
-      const block  = document.createElement('div');
-      block.className = 'task-block';
-      block.style.cssText = `top:${top}px;height:${height}px;background:${c.bg};color:${c.fg};`;
-      block.innerHTML = `<span class="task-name">${t.name} <span style="opacity:.7;font-weight:400">${toLabel(t.start)}–${toLabel(t.end)}</span></span><span class="task-del" title="Supprimer" onclick="deleteTask(${idx},event)">×</span>`;
-      block.addEventListener('click', () => openEdit(idx));
-      col.appendChild(block);
-    });
-  }
-
-  /* ── Ajouter une tâche ── */
-  function addTask() {
-    const name  = document.getElementById('taskName').value.trim();
-    const day   = parseInt(document.getElementById('daySelect').value);
-    const start = parseFloat(document.getElementById('startH').value);
-    const end   = parseFloat(document.getElementById('endH').value);
-    const err   = document.getElementById('errorMsg');
-    if (!name) { err.textContent = 'Veuillez saisir un nom.'; return; }
-    if (end <= start) { err.textContent = "L'heure de fin doit être après le début."; return; }
-    err.textContent = '';
-    tasks.push({ name, day, start, end, color: selectedColor });
-    document.getElementById('taskName').value = '';
-    renderTasks();
-  }
-
-  /* ── Supprimer une tâche ── */
-  function deleteTask(idx, e) {
-    e.stopPropagation();
-    tasks.splice(idx, 1);
-    renderTasks();
-  }
-
-  /* ── Ouvrir la modale d'édition ── */
-  function openEdit(idx) {
-    editIdx = idx;
-    const t = tasks[idx];
-    const overlay = document.getElementById('modalOverlay');
-    const content = document.getElementById('modalContent');
-    let dayOpts = '';
-    ['Lundi','Mardi','Mercredi','Jeudi','Vendredi'].forEach((d, i) => {
-      dayOpts += `<option value="${i}"${t.day===i?' selected':''}>${d}</option>`;
-    });
-    content.innerHTML = `
-      <h3>✏️ Modifier la tâche</h3>
-      <label>Nom</label>
-      <input type="text" id="editName" value="${t.name}" />
-      <label>Jour</label>
-      <select id="editDay">${dayOpts}</select>
-      <div class="mrow">
-        <div><label>Début</label><select id="editStart"></select></div>
-        <div><label>Fin</label><select id="editEnd"></select></div>
-      </div>
-      <label>Couleur</label>
-      <div class="color-row" id="editColorPicker"></div>
-      <p class="msg-error" id="editError"></p>
-      <div class="modal-btns">
-        <button onclick="closeModal()">Annuler</button>
-        <button class="btn-confirm" onclick="saveEdit()">Enregistrer</button>
-      </div>
-    `;
-    buildTimeOptions(document.getElementById('editStart'), HOURS_START, HOURS_END - 0.25, t.start);
-    buildTimeOptions(document.getElementById('editEnd'),   HOURS_START + 0.25, HOURS_END, t.end);
-    buildColorPicker('editColorPicker', t.color, (i) => {
-      tasks[editIdx].color = i;
-      buildColorPicker('editColorPicker', i, arguments.callee);
-    });
-    overlay.classList.add('open');
-    document.getElementById('editName').focus();
-  }
-
-  function saveEdit() {
-    const name  = document.getElementById('editName').value.trim();
-    const day   = parseInt(document.getElementById('editDay').value);
-    const start = parseFloat(document.getElementById('editStart').value);
-    const end   = parseFloat(document.getElementById('editEnd').value);
-    const err   = document.getElementById('editError');
-    if (!name) { err.textContent = 'Veuillez saisir un nom.'; return; }
-    if (end <= start) { err.textContent = "L'heure de fin doit être après le début."; return; }
-    tasks[editIdx] = { ...tasks[editIdx], name, day, start, end };
-    closeModal();
-    renderTasks();
-  }
-
-  function closeModal() {
-    document.getElementById('modalOverlay').classList.remove('open');
-    editIdx = -1;
-  }
-
-  /* ── Sélecteur de couleur ── */
-  function buildColorPicker(containerId, selectedIdx, onPick) {
-    const cp = document.getElementById(containerId);
-    if (!cp) return;
-    cp.innerHTML = '';
-    COLORS.forEach((c, i) => {
-      const d = document.createElement('div');
-      d.className = 'color-dot' + (i === selectedIdx ? ' selected' : '');
-      d.style.background = c.bg;
-      d.title = c.name;
-      d.onclick = () => onPick(i);
-      cp.appendChild(d);
-    });
-  }
-
-  document.getElementById('modalOverlay').addEventListener('click', function(e) {
-    if (e.target === this) closeModal();
-  });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-  document.getElementById('taskName').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
-
-  /* ── Init ── */
-  buildTimeCol();
-  buildDays();
-  buildTimeOptions(document.getElementById('startH'), HOURS_START, HOURS_END - 0.25, 9);
-  buildTimeOptions(document.getElementById('endH'),   HOURS_START + 0.25, HOURS_END, 10);
-  buildColorPicker('colorPicker', selectedColor, (i) => {
-    selectedColor = i;
-    buildColorPicker('colorPicker', i, arguments.callee);
-  });
-  renderTasks();
+  }, 80);
+});
 </script>
+
 </body>
 </html>

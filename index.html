@@ -51,7 +51,6 @@
     overflow: hidden;
   }
 
-  /* ── Header ── */
   .header-band {
     background: var(--red);
     padding: 1.25rem 1.5rem;
@@ -70,10 +69,8 @@
   .header-title { font-size: 16px; font-weight: 700; color: #fff; line-height: 1.3; }
   .header-sub   { font-size: 12px; color: rgba(255,255,255,0.72); margin-top: 2px; }
 
-  /* ── Body ── */
   .body { padding: 1.5rem; }
 
-  /* ── Pipeline ── */
   .pipeline { display: flex; flex-direction: column; }
 
   .step-row { display: flex; align-items: stretch; gap: 0; }
@@ -112,6 +109,9 @@
   .step-card.done     { border-color: var(--green-brd); }
   .step-card.error    { border-color: var(--danger-brd); }
 
+  /* Étape 2 masquée */
+  #step2-row { display: none; }
+
   .step-head { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
   .step-head-text { flex: 1; }
   .step-label { font-size: 10.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); }
@@ -130,7 +130,6 @@
   .badge-err     { background: var(--danger-bg); color: var(--danger-txt); }
   .badge-info    { background: var(--blue-bg); color: var(--blue-txt); }
 
-  /* ── Drop zone ── */
   .drop-zone {
     border: 2px dashed var(--blue-brd);
     border-radius: 6px; padding: 1.5rem 1rem;
@@ -147,7 +146,6 @@
   .dz-sub   { font-size: 12px; color: var(--navy-mid); margin-top: 3px; }
   .dz-sub strong { color: var(--red); }
 
-  /* ── File pill ── */
   .file-pill {
     display: none; align-items: center; gap: 8px;
     background: var(--green-bg); border: 1px solid var(--green-brd);
@@ -157,7 +155,6 @@
   }
   .file-pill.visible { display: flex; }
 
-  /* ── Detail chips ── */
   .detail-row {
     display: grid; grid-template-columns: 1fr 1fr;
     gap: 8px; margin-top: 10px; display: none;
@@ -171,7 +168,6 @@
   .chip-val   { font-size: 13px; font-weight: 700; color: var(--navy); margin-top: 2px; font-family: var(--mono); }
   .chip-val.red { color: var(--red); }
 
-  /* ── Transform grid ── */
   .transform-grid {
     display: grid; grid-template-columns: 1fr 22px 1fr;
     align-items: center; gap: 8px; margin-top: 10px; display: none;
@@ -185,7 +181,6 @@
   .tb-val   { font-size: 11.5px; font-weight: 700; color: var(--navy); font-family: var(--mono); padding: 1px 0; }
   .transform-arrow { text-align: center; color: var(--muted); font-size: 18px; }
 
-  /* ── Output preview ── */
   .output-preview {
     margin-top: 10px; background: var(--surface);
     border: 1px solid var(--border); border-radius: 4px;
@@ -197,12 +192,10 @@
   .csv-row    { padding: 2px 0; color: var(--muted); }
   .csv-row span { color: var(--red); }
 
-  /* ── Progress ── */
   .progress-wrap { margin-top: 10px; display: none; }
   .progress-track { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
   .progress-fill  { height: 100%; background: var(--red); width: 0%; transition: width 0.3s; border-radius: 2px; }
 
-  /* ── Status messages ── */
   .status-msg {
     margin-top: 8px; padding: 8px 12px; border-radius: 4px;
     font-size: 12px; display: none;
@@ -211,21 +204,6 @@
   .status-msg.info    { background: var(--blue-bg);   color: var(--blue-txt);   border-color: var(--blue-brd); }
   .status-msg.success { background: var(--green-bg);  color: var(--green-txt);  border-color: var(--green-brd); }
   .status-msg.error   { background: var(--danger-bg); color: var(--danger-txt); border-color: var(--danger-brd); }
-
-  /* ── Buttons ── */
-  .btn-red {
-    width: 100%; margin-top: 10px; padding: 11px;
-    background: var(--red); color: #fff;
-    border: none; border-radius: 5px;
-    font-size: 13px; font-weight: 700;
-    font-family: 'Segoe UI', Arial, sans-serif;
-    cursor: pointer; display: flex; align-items: center;
-    justify-content: center; gap: 8px;
-    transition: background 0.15s, transform 0.1s, opacity 0.15s;
-  }
-  .btn-red:hover:not(:disabled) { background: var(--red-dark); }
-  .btn-red:active:not(:disabled) { transform: scale(0.99); }
-  .btn-red:disabled { opacity: 0.3; cursor: not-allowed; }
 
   .btn-dl {
     width: 100%; margin-top: 8px; padding: 11px;
@@ -240,7 +218,6 @@
   .btn-dl:hover { background: #C8EAD5; }
   .btn-dl.visible { display: flex; }
 
-  /* ── Footer ── */
   .footer-band {
     background: var(--navy); padding: 10px 1.5rem;
     text-align: center; font-size: 11px;
@@ -265,7 +242,7 @@
   <div class="body">
     <div class="pipeline" id="pipeline">
 
-      <!-- ── Étape 1 : Chargement ── -->
+      <!-- Étape 1 : Chargement -->
       <div class="step-row">
         <div class="step-connector">
           <div class="step-dot active" id="dot1">1</div>
@@ -274,7 +251,7 @@
         <div class="step-card active" id="card1">
           <div class="step-head">
             <div class="step-head-text">
-              <div class="step-label">Étape 1 / 4</div>
+              <div class="step-label">Étape 1 / 3</div>
               <div class="step-title">Chargement du fichier source</div>
             </div>
             <div class="step-badge badge-active" id="badge1">En attente</div>
@@ -294,60 +271,31 @@
             <i class="ti ti-check"></i>
             <span id="fileName"></span>
           </div>
-        </div>
-      </div>
-
-      <!-- ── Étape 2 : Validation ── -->
-      <div class="step-row">
-        <div class="step-connector">
-          <div class="step-dot" id="dot2">2</div>
-          <div class="step-line"></div>
-        </div>
-        <div class="step-card inactive" id="card2">
-          <div class="step-head">
-            <div class="step-head-text">
-              <div class="step-label">Étape 2 / 4</div>
-              <div class="step-title">Validation de la structure</div>
-            </div>
-            <div class="step-badge badge-wait" id="badge2">En attente</div>
-          </div>
-          <div class="step-desc">
-            Vérification du nombre de colonnes, présence de la colonne <code style="font-family:var(--mono);font-size:11.5px;">CD (82)</code> et du préfixe du nom de fichier.
-          </div>
-
-          <div class="detail-row" id="validDetail">
-            <div class="detail-chip">
-              <div class="chip-label">Colonnes détectées</div>
-              <div class="chip-val" id="colCount">—</div>
-            </div>
-            <div class="detail-chip">
-              <div class="chip-label">Lignes de données</div>
-              <div class="chip-val" id="rowCount">—</div>
-            </div>
-            <div class="detail-chip">
-              <div class="chip-label">Colonne B — code article</div>
-              <div class="chip-val">col. 2</div>
-            </div>
-            <div class="detail-chip">
-              <div class="chip-label">Colonne CD — prix</div>
-              <div class="chip-val red">col. 82</div>
-            </div>
-          </div>
 
           <div class="status-msg" id="validStatus"></div>
         </div>
       </div>
 
-      <!-- ── Étape 3 : Transformation ── -->
+      <!-- Étape 2 masquée (validation silencieuse) -->
+      <div class="step-row" id="step2-row">
+        <div class="step-connector">
+          <div class="step-dot" id="dot2">2</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-card inactive" id="card2">
+        </div>
+      </div>
+
+      <!-- Étape 3 : Transformation (renommée Étape 2) -->
       <div class="step-row">
         <div class="step-connector">
-          <div class="step-dot" id="dot3">3</div>
+          <div class="step-dot" id="dot3">2</div>
           <div class="step-line"></div>
         </div>
         <div class="step-card inactive" id="card3">
           <div class="step-head">
             <div class="step-head-text">
-              <div class="step-label">Étape 3 / 4</div>
+              <div class="step-label">Étape 2 / 3</div>
               <div class="step-title">Transformation des données</div>
             </div>
             <div class="step-badge badge-wait" id="badge3">En attente</div>
@@ -376,23 +324,18 @@
           </div>
 
           <div class="status-msg" id="transformStatus"></div>
-
-          <button class="btn-red" id="btnGenerate" disabled>
-            <i class="ti ti-settings"></i>
-            Lancer la transformation
-          </button>
         </div>
       </div>
 
-      <!-- ── Étape 4 : Export ── -->
+      <!-- Étape 4 : Export (renommée Étape 3) -->
       <div class="step-row">
         <div class="step-connector">
-          <div class="step-dot" id="dot4">4</div>
+          <div class="step-dot" id="dot4">3</div>
         </div>
         <div class="step-card inactive" id="card4">
           <div class="step-head">
             <div class="step-head-text">
-              <div class="step-label">Étape 4 / 4</div>
+              <div class="step-label">Étape 3 / 3</div>
               <div class="step-title">Export CSV — Reflex</div>
             </div>
             <div class="step-badge badge-wait" id="badge4">En attente</div>
@@ -442,14 +385,12 @@ const fileInput    = document.getElementById('fileInput');
 const dropZone     = document.getElementById('dropZone');
 const filePill     = document.getElementById('filePill');
 const fileNameEl   = document.getElementById('fileName');
-const btnGenerate  = document.getElementById('btnGenerate');
 const progressWrap = document.getElementById('progressWrap');
 const progressFill = document.getElementById('progressFill');
 const downloadBtn  = document.getElementById('downloadBtn');
 
 let workbookData = null;
 
-/* ── Helpers ── */
 function showMsg(id, msg, type) {
   const el = document.getElementById(id);
   el.textContent = msg;
@@ -467,23 +408,26 @@ function setProgress(pct) {
   if (pct >= 100) setTimeout(() => { progressWrap.style.display = 'none'; }, 700);
 }
 
-/* ── Pipeline state ── */
+/* Pipeline — on gère 1, 3, 4 (2 est caché) */
 function setStep(active) {
-  for (let i = 1; i <= 4; i++) {
-    const card = document.getElementById('card' + i);
-    const dot  = document.getElementById('dot'  + i);
+  const map = { 1: 1, 2: 3, 3: 4 }; // visible step → real card id
+  const steps = [1, 3, 4];
+  steps.forEach((cardId, idx) => {
+    const visIdx = idx + 1; // 1, 2, 3
+    const card = document.getElementById('card' + cardId);
+    const dot  = document.getElementById('dot'  + cardId);
     card.classList.remove('active', 'done', 'inactive', 'error');
     dot.classList.remove('active', 'done', 'error');
-    if (i < active) {
+    if (visIdx < active) {
       card.classList.add('done');
       dot.classList.add('done');
-    } else if (i === active) {
+    } else if (visIdx === active) {
       card.classList.add('active');
       dot.classList.add('active');
     } else {
       card.classList.add('inactive');
     }
-  }
+  });
 }
 
 function setCardError(n) {
@@ -497,7 +441,7 @@ function setBadge(n, text, type) {
   b.className = 'step-badge badge-' + type;
 }
 
-/* ── File handling ── */
+/* File handling */
 dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('dragover'); });
 dropZone.addEventListener('dragleave', ()  => dropZone.classList.remove('dragover'));
 dropZone.addEventListener('drop', e => {
@@ -510,21 +454,17 @@ fileInput.addEventListener('change', () => { if (fileInput.files[0]) handleFile(
 function handleFile(file) {
   const name = file.name;
 
-  /* reset */
   downloadBtn.classList.remove('visible');
   ['validStatus','transformStatus','exportStatus'].forEach(hideMsg);
-  document.getElementById('validDetail').classList.remove('visible');
   document.getElementById('transformDetail').classList.remove('visible');
   document.getElementById('outputPreview').classList.remove('visible');
   document.getElementById('exportDetail').classList.remove('visible');
-  btnGenerate.disabled = true;
   workbookData = null;
   setStep(1);
 
-  /* nom de fichier */
   if (!name.match(/^2008/i)) {
-    setStep(2); setCardError(2);
-    setBadge(2, 'Erreur', 'err');
+    setCardError(1);
+    setBadge(1, 'Erreur', 'err');
     showMsg('validStatus', '⚠ Le nom doit commencer par "2008". Reçu : ' + name, 'error');
     return;
   }
@@ -547,30 +487,23 @@ function handleFile(file) {
       const ws    = wb.Sheets[wb.SheetNames[0]];
       const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
 
-      setBadge(1, 'Chargé', 'ok');
-      setStep(2);
-      setBadge(2, 'Validation…', 'info');
-
-      document.getElementById('colCount').textContent = range.e.c + 1;
-      document.getElementById('rowCount').textContent = range.e.r;
-      document.getElementById('validDetail').classList.add('visible');
-
+      /* Validation silencieuse */
       if (range.e.c < 81) {
-        setCardError(2);
-        setBadge(2, 'Erreur', 'err');
+        setCardError(1);
+        setBadge(1, 'Erreur', 'err');
         showMsg('validStatus', '⚠ ' + (range.e.c + 1) + ' colonnes — colonne CD (82) introuvable.', 'error');
         return;
       }
 
-      showMsg('validStatus', '✓ Structure valide — ' + range.e.r + ' lignes, ' + (range.e.c + 1) + ' colonnes.', 'success');
-      setBadge(2, 'Valide', 'ok');
+      setBadge(1, 'Chargé', 'ok');
 
+      /* Lancer automatiquement la transformation */
       setTimeout(() => {
-        setStep(3);
-        setBadge(3, 'Prêt', 'active');
+        setStep(2);
+        setBadge(3, 'En cours…', 'info');
         document.getElementById('transformDetail').classList.add('visible');
-        btnGenerate.disabled = false;
-      }, 350);
+        runTransform();
+      }, 400);
 
     } catch(err) {
       showMsg('validStatus', 'Erreur de lecture : ' + err.message, 'error');
@@ -579,12 +512,9 @@ function handleFile(file) {
   reader.readAsArrayBuffer(file);
 }
 
-/* ── Generate ── */
-btnGenerate.addEventListener('click', () => {
+/* Transformation automatique */
+function runTransform() {
   if (!workbookData) return;
-  btnGenerate.disabled = true;
-  setBadge(3, 'En cours…', 'info');
-  showMsg('transformStatus', 'Transformation en cours…', 'info');
   setProgress(15);
 
   setTimeout(() => {
@@ -634,7 +564,7 @@ btnGenerate.addEventListener('click', () => {
       document.getElementById('exportCount').textContent = (rows.length - 1) + ' lignes';
 
       setTimeout(() => {
-        setStep(4);
+        setStep(3);
         setBadge(4, 'Prêt', 'ok');
         document.getElementById('outputPreview').classList.add('visible');
         document.getElementById('exportDetail').classList.add('visible');
@@ -649,7 +579,7 @@ btnGenerate.addEventListener('click', () => {
       setBadge(3, 'Erreur', 'err');
     }
   }, 80);
-});
+}
 </script>
 
 </body>

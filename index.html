@@ -3,163 +3,236 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Export Articles — Outil de transformation Excel</title>
+<title>Import Prix RFX</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700&family=Source+Code+Pro:wght@400;500&display=swap');
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+  :root {
+    --sncf-red:      #E2001A;
+    --sncf-red-soft: #FADADD;
+    --bg:            #F2F4F8;
+    --white:         #FFFFFF;
+    --surface:       #EEF1F7;
+    --border:        #D5DCE8;
+    --navy:          #1C2B4A;
+    --navy-mid:      #3B4F75;
+    --muted:         #7A8BAA;
+    --pastel-blue:   #D6E4F7;
+    --pastel-blue2:  #B8D3F0;
+    --pastel-green:  #D4EFE1;
+    --pastel-green2: #A8DBBC;
+    --pastel-red:    #FADADD;
+    --text-on-red:   #8B0010;
+    --text-on-green: #1A6640;
+    --text-on-blue:  #1A3D6B;
+  }
+
   body {
-    font-family: Arial, sans-serif;
-    background: #F0F4F8;
+    font-family: 'Source Sans 3', 'Arial', sans-serif;
+    background: var(--bg);
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 2rem;
+    padding: 2rem 1rem;
   }
 
   .card {
-    background: #ffffff;
-    border-radius: 16px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.10);
-    padding: 2.5rem 2rem;
+    background: var(--white);
+    border-radius: 0;
+    border-top: 5px solid var(--sncf-red);
+    box-shadow: 0 2px 16px rgba(28,43,74,0.10);
+    padding: 0;
     width: 100%;
-    max-width: 580px;
+    max-width: 560px;
+    overflow: hidden;
   }
 
-  .header { text-align: center; margin-bottom: 2rem; }
-  .header .icon { font-size: 48px; margin-bottom: 0.5rem; }
-  .header h1 { font-size: 22px; font-weight: 700; color: #1A2B4A; }
-  .header p  { font-size: 14px; color: #6B7A99; margin-top: 6px; }
+  /* ── Header bande rouge SNCF ── */
+  .header-band {
+    background: var(--sncf-red);
+    padding: 1.4rem 2rem 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
 
-  /* Drop zone */
+  .logo-wrap {
+    background: rgba(255,255,255,0.18);
+    border-radius: 8px;
+    width: 48px; height: 48px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+
+  .header-text h1 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.2px;
+    line-height: 1.25;
+  }
+
+  .header-text p {
+    font-size: 12px;
+    color: rgba(255,255,255,0.75);
+    margin-top: 3px;
+    font-weight: 400;
+  }
+
+  /* ── Corps ── */
+  .body {
+    padding: 1.75rem 2rem 2rem;
+  }
+
+  /* ── Drop zone ── */
   .drop-zone {
-    border: 2px dashed #B5D4F4;
-    border-radius: 12px;
-    padding: 2.5rem 1.5rem;
+    border: 2px dashed var(--pastel-blue2);
+    border-radius: 6px;
+    padding: 2rem 1.5rem;
     text-align: center;
     cursor: pointer;
-    background: #F5F9FF;
+    background: var(--pastel-blue);
     position: relative;
     transition: border-color 0.2s, background 0.2s;
   }
+
   .drop-zone:hover, .drop-zone.dragover {
-    border-color: #378ADD;
-    background: #EBF4FF;
+    border-color: #6B9FD4;
+    background: #C5D9F2;
   }
+
   .drop-zone input[type=file] {
     position: absolute; inset: 0; opacity: 0;
     cursor: pointer; width: 100%; height: 100%;
   }
-  .drop-zone .dz-icon { font-size: 40px; margin-bottom: 10px; }
-  .drop-zone .dz-title { font-size: 15px; font-weight: 600; color: #1A2B4A; }
-  .drop-zone .dz-sub   { font-size: 13px; color: #6B7A99; margin-top: 5px; }
-  .drop-zone .dz-sub strong { color: #185FA5; }
 
-  /* File badge */
+  .dz-icon { font-size: 32px; margin-bottom: 8px; }
+
+  .dz-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--navy);
+  }
+
+  .dz-sub {
+    font-size: 12.5px;
+    color: var(--navy-mid);
+    margin-top: 4px;
+  }
+
+  .dz-sub strong {
+    color: var(--sncf-red);
+    font-weight: 700;
+  }
+
+  /* ── File badge ── */
   .file-badge {
     display: none;
     align-items: center;
     gap: 8px;
-    background: #E6F1FB;
-    border-radius: 8px;
-    padding: 8px 14px;
-    margin-top: 12px;
-    font-size: 13px;
+    background: var(--pastel-green);
+    border-left: 3px solid var(--pastel-green2);
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-top: 10px;
+    font-size: 12px;
     font-weight: 600;
-    color: #0C447C;
+    color: var(--text-on-green);
+    font-family: 'Source Code Pro', monospace;
   }
   .file-badge.visible { display: flex; }
 
-  /* Mapping table */
-  .mapping-card {
-    background: #F8FAFB;
-    border: 1px solid #DDE3EE;
-    border-radius: 12px;
-    padding: 1rem 1.25rem;
-    margin-top: 1.5rem;
-  }
-  .mapping-card h3 {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #8A97B0;
-    margin-bottom: 12px;
-  }
-  .mapping-row {
-    display: grid;
-    grid-template-columns: 90px 1fr 20px 1fr;
-    gap: 6px 10px;
-    align-items: center;
+  /* ── Info block ── */
+  .info-block {
+    background: var(--surface);
+    border-left: 3px solid var(--sncf-red);
+    border-radius: 4px;
+    padding: 11px 14px;
+    margin-top: 1.25rem;
     font-size: 13px;
-    margin-bottom: 8px;
+    color: var(--navy-mid);
+    line-height: 1.6;
   }
-  .mapping-row:last-child { margin-bottom: 0; }
-  .tag {
-    display: inline-flex; align-items: center; justify-content: center;
-    border-radius: 5px; padding: 2px 8px; font-size: 12px; font-weight: 700;
+
+  .info-block strong { color: var(--navy); font-weight: 600; }
+
+  /* ── Divider ── */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 1.5rem 0;
   }
-  .tag-src  { background: #FAEEDA; color: #633806; }
-  .tag-dest { background: #EAF3DE; color: #27500A; }
-  .tag-fix  { background: #EDE9FE; color: #4C1D95; }
-  .arrow { color: #8A97B0; text-align: center; }
-  .map-label { color: #6B7A99; }
-  .map-value { color: #1A2B4A; font-weight: 600; }
 
-  /* Divider */
-  .divider { border: none; border-top: 1px solid #DDE3EE; margin: 0.6rem 0; }
-
-  /* Generate button */
+  /* ── Generate button ── */
   .btn-generate {
     width: 100%;
-    margin-top: 1.5rem;
     padding: 13px;
-    background: #185FA5;
+    background: var(--sncf-red);
     color: #fff;
     border: none;
-    border-radius: 10px;
-    font-size: 15px;
+    border-radius: 5px;
+    font-size: 14px;
     font-weight: 700;
+    font-family: 'Source Sans 3', sans-serif;
+    letter-spacing: 0.3px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    transition: background 0.15s, transform 0.1s;
+    transition: background 0.15s, transform 0.1s, opacity 0.15s;
   }
-  .btn-generate:hover:not(:disabled) { background: #0C447C; }
-  .btn-generate:active:not(:disabled) { transform: scale(0.98); }
-  .btn-generate:disabled { opacity: 0.45; cursor: not-allowed; }
 
-  /* Progress bar */
+  .btn-generate:hover:not(:disabled) { background: #B8001A; }
+  .btn-generate:active:not(:disabled) { transform: scale(0.99); }
+  .btn-generate:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* ── Progress ── */
   .progress-wrap { margin-top: 12px; display: none; }
-  .progress-track { height: 5px; background: #DDE3EE; border-radius: 3px; overflow: hidden; }
-  .progress-fill  { height: 100%; background: #378ADD; width: 0%; transition: width 0.3s; border-radius: 3px; }
-
-  /* Status */
-  .status {
-    margin-top: 12px;
-    padding: 10px 14px;
-    border-radius: 8px;
-    font-size: 13px;
-    display: none;
+  .progress-track {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
   }
-  .status.info    { background: #E6F1FB; color: #0C447C; }
-  .status.success { background: #EAF3DE; color: #27500A; }
-  .status.error   { background: #FCEBEB; color: #7A1F1F; }
+  .progress-fill {
+    height: 100%;
+    background: var(--sncf-red);
+    width: 0%;
+    transition: width 0.3s;
+    border-radius: 2px;
+  }
 
-  /* Download button */
+  /* ── Status ── */
+  .status {
+    margin-top: 10px;
+    padding: 9px 13px;
+    border-radius: 4px;
+    font-size: 12.5px;
+    display: none;
+    font-family: 'Source Code Pro', monospace;
+  }
+  .status.info    { background: var(--pastel-blue);  color: var(--text-on-blue);  border-left: 3px solid var(--pastel-blue2); }
+  .status.success { background: var(--pastel-green); color: var(--text-on-green); border-left: 3px solid var(--pastel-green2); }
+  .status.error   { background: var(--pastel-red);   color: var(--text-on-red);   border-left: 3px solid #F4A0A8; }
+
+  /* ── Download button ── */
   .btn-download {
     width: 100%;
     margin-top: 10px;
     padding: 12px;
-    background: #0F6E56;
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    font-size: 15px;
+    background: var(--pastel-green);
+    color: var(--text-on-green);
+    border: 1.5px solid var(--pastel-green2);
+    border-radius: 5px;
+    font-size: 14px;
     font-weight: 700;
+    font-family: 'Source Sans 3', sans-serif;
     cursor: pointer;
     display: none;
     align-items: center;
@@ -168,14 +241,18 @@
     transition: background 0.15s;
     text-decoration: none;
   }
-  .btn-download:hover { background: #085041; }
+
+  .btn-download:hover { background: #C2E8D0; }
   .btn-download.visible { display: flex; }
 
-  .footer {
+  /* ── Footer ── */
+  .footer-band {
+    background: var(--navy);
+    padding: 10px 2rem;
     text-align: center;
-    margin-top: 1.5rem;
-    font-size: 12px;
-    color: #B0BBCC;
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.2px;
   }
 </style>
 </head>
@@ -183,50 +260,52 @@
 
 <div class="card">
 
-  <div class="header">
-    <div class="icon">💲🪙 💵</div>
-    <h1>Generateur du fichier d'import de prix pour RFX</h1>
-    <p>Transformez votre fichier source <strong>2008 - Alimentation VERA - 5322A - Nevers-fr-fr.xlsx</strong> en fichier prêt à l'import pour RFX</p>
+  <div class="header-band">
+    <div class="logo-wrap">🏷️</div>
+    <div class="header-text">
+      <h1>Générateur d'import de prix RFX</h1>
+      <p>Outil de transformation — Logistique Méthodes</p>
+    </div>
   </div>
 
-  <!-- Zone de dépôt -->
-  <div class="drop-zone" id="dropZone">
-    <input type="file" id="fileInput" accept=".xlsx,.xls" />
-    <div class="dz-icon">📂</div>
-    <div class="dz-title">Déposez votre fichier Excel ici</div>
-    <div class="dz-sub">ou cliquez pour parcourir &nbsp;—&nbsp; le nom doit commencer par <strong>2008</strong></div>
+  <div class="body">
+
+    <div class="drop-zone" id="dropZone">
+      <input type="file" id="fileInput" accept=".xlsx,.xls" />
+      <div class="dz-icon">📂</div>
+      <div class="dz-title">Déposez votre fichier Excel ici</div>
+      <div class="dz-sub">ou cliquez pour parcourir — le nom doit commencer par <strong>2008</strong></div>
+    </div>
+
+    <div class="file-badge" id="fileBadge">
+      ✓ <span id="fileName"></span>
+    </div>
+
+    <div class="info-block">
+      Convertit l'extraction des prix depuis l'<strong>ERP</strong> vers le fichier d'intégration <strong>Reflex</strong>.
+      Prix formatés sur <strong>3 décimales</strong>, séparateur virgule.
+    </div>
+
+    <div class="divider"></div>
+
+    <button class="btn-generate" id="btnGenerate" disabled>
+      ⚙️ &nbsp;Générer Export_Articles.csv
+    </button>
+
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+
+    <div class="status" id="statusBar"></div>
+
+    <a class="btn-download" id="downloadBtn" download="Export_Articles.csv">
+      ↓ &nbsp;Télécharger Export_Articles.csv
+    </a>
+
   </div>
 
-  <div class="file-badge" id="fileBadge">
-    ✅ <span id="fileName"></span>
-  </div>
+  <div class="footer-band">100 % local — aucune donnée transmise sur internet</div>
 
-  <!-- Description -->
-  <div class="mapping-card">
-    <p style="font-size:14px; color:#1A2B4A; line-height:1.65;">
-      Cet outil convertit l'extraction des prix depuis l'<strong>ERP</strong> afin de générer le fichier d'intégration des prix dans <strong>Reflex</strong>.
-    </p>
-  </div>
-
-  <!-- Bouton générer -->
-  <button class="btn-generate" id="btnGenerate" disabled>
-    ⚙️ &nbsp;Générer Export_Articles.csv
-  </button>
-
-  <!-- Barre de progression -->
-  <div class="progress-wrap" id="progressWrap">
-    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-  </div>
-
-  <!-- Statut -->
-  <div class="status" id="statusBar"></div>
-
-  <!-- Bouton téléchargement -->
-  <a class="btn-download" id="downloadBtn" download="Export_Articles.csv">
-    ⬇️ &nbsp;Télécharger Export_Articles.csv
-  </a>
-
-  <div class="footer">Fonctionne 100 % dans votre navigateur — aucune donnée envoyée sur internet</div>
 </div>
 
 <script>
@@ -293,7 +372,7 @@ function handleFile(file) {
       const ws = wb.Sheets[wb.SheetNames[0]];
       const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
       if (range.e.c < 81) {
-        showStatus('⚠ Le fichier n\'a que ' + (range.e.c + 1) + ' colonnes. La colonne CD (colonne 82) est introuvable.', 'error');
+        showStatus('⚠ ' + (range.e.c + 1) + ' colonnes trouvées — colonne CD (82) introuvable.', 'error');
         setProgress(0); progressWrap.style.display = 'none';
         btnGenerate.disabled = true;
         return;
@@ -349,7 +428,6 @@ btnGenerate.addEventListener('click', () => {
 
       setProgress(70);
 
-      // Génération CSV UTF-8 avec BOM (pour Excel français)
       const csvLines = rows.map(row => row.map(csvEscape).join(';'));
       const csvContent = '\uFEFF' + csvLines.join('\r\n');
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });

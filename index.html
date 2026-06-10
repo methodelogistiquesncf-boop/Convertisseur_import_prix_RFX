@@ -5,255 +5,249 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Import Prix RFX</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700&family=Source+Code+Pro:wght@400;500&display=swap');
-
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --sncf-red:      #E2001A;
-    --sncf-red-soft: #FADADD;
-    --bg:            #F2F4F8;
-    --white:         #FFFFFF;
-    --surface:       #EEF1F7;
-    --border:        #D5DCE8;
-    --navy:          #1C2B4A;
-    --navy-mid:      #3B4F75;
-    --muted:         #7A8BAA;
-    --pastel-blue:   #D6E4F7;
-    --pastel-blue2:  #B8D3F0;
-    --pastel-green:  #D4EFE1;
-    --pastel-green2: #A8DBBC;
-    --pastel-red:    #FADADD;
-    --text-on-red:   #8B0010;
-    --text-on-green: #1A6640;
-    --text-on-blue:  #1A3D6B;
+    --red:        #E2001A;
+    --red-light:  #FFF0F0;
+    --red-dark:   #B8001A;
+    --bg:         #F2F4F8;
+    --white:      #FFFFFF;
+    --surface:    #F0F2F7;
+    --border:     #D5DCE8;
+    --navy:       #1C2B4A;
+    --navy-mid:   #3B4F75;
+    --muted:      #7A8BAA;
+    --green-bg:   #EAF5EE;
+    --green-brd:  #7EC89A;
+    --green-txt:  #1A6640;
+    --blue-bg:    #E6F1FB;
+    --blue-brd:   #85B7EB;
+    --blue-txt:   #1A3D6B;
+    --danger-bg:  #FCEBEB;
+    --danger-brd: #F09595;
+    --danger-txt: #8B0010;
+    --mono:       'Courier New', monospace;
   }
 
   body {
-    font-family: 'Source Sans 3', 'Arial', sans-serif;
+    font-family: 'Segoe UI', Arial, sans-serif;
     background: var(--bg);
     min-height: 100vh;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     padding: 2rem 1rem;
   }
 
   .card {
     background: var(--white);
-    border-radius: 0;
-    border-top: 5px solid var(--sncf-red);
+    border-top: 4px solid var(--red);
     box-shadow: 0 2px 16px rgba(28,43,74,0.10);
-    padding: 0;
     width: 100%;
     max-width: 560px;
     overflow: hidden;
   }
 
-  /* ── Header bande rouge SNCF ── */
+  /* ── Header ── */
   .header-band {
-    background: var(--sncf-red);
-    padding: 1.4rem 2rem 1.2rem;
+    background: var(--red);
+    padding: 1.25rem 1.5rem;
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 12px;
   }
-
-  .logo-wrap {
+  .header-icon {
+    width: 42px; height: 42px;
     background: rgba(255,255,255,0.18);
     border-radius: 8px;
-    width: 48px; height: 48px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 24px;
     flex-shrink: 0;
   }
+  .header-icon i { color: #fff; font-size: 22px; }
+  .header-title { font-size: 16px; font-weight: 700; color: #fff; line-height: 1.3; }
+  .header-sub   { font-size: 12px; color: rgba(255,255,255,0.72); margin-top: 2px; }
 
-  .header-text h1 {
-    font-size: 17px;
-    font-weight: 700;
-    color: #fff;
-    letter-spacing: -0.2px;
-    line-height: 1.25;
-  }
+  /* ── Body ── */
+  .body { padding: 1.5rem; }
 
-  .header-text p {
-    font-size: 12px;
-    color: rgba(255,255,255,0.75);
-    margin-top: 3px;
-    font-weight: 400;
-  }
+  /* ── Pipeline ── */
+  .pipeline { display: flex; flex-direction: column; }
 
-  /* ── Corps ── */
-  .body {
-    padding: 1.75rem 2rem 2rem;
+  .step-row { display: flex; align-items: stretch; gap: 0; }
+
+  .step-connector {
+    display: flex; flex-direction: column; align-items: center;
+    width: 44px; flex-shrink: 0;
   }
+  .step-dot {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0;
+    transition: background 0.3s, color 0.3s, border-color 0.3s;
+    border: 2px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+  }
+  .step-dot.active  { background: var(--red-light); color: var(--red); border-color: var(--red); }
+  .step-dot.done    { background: var(--green-bg); color: var(--green-txt); border-color: var(--green-brd); }
+  .step-dot.error   { background: var(--danger-bg); color: var(--danger-txt); border-color: var(--danger-brd); }
+
+  .step-line { width: 2px; flex: 1; background: var(--border); min-height: 12px; }
+
+  .step-card {
+    flex: 1;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    margin-left: 12px;
+    margin-bottom: 12px;
+    transition: opacity 0.3s, border-color 0.3s;
+  }
+  .step-card.inactive { opacity: 0.4; }
+  .step-card.active   { border-color: var(--red); }
+  .step-card.done     { border-color: var(--green-brd); }
+  .step-card.error    { border-color: var(--danger-brd); }
+
+  .step-head { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
+  .step-head-text { flex: 1; }
+  .step-label { font-size: 10.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); }
+  .step-title { font-size: 14px; font-weight: 700; color: var(--navy); margin-top: 1px; }
+  .step-desc  { font-size: 12.5px; color: var(--navy-mid); line-height: 1.55; margin-top: 6px; }
+
+  .step-badge {
+    font-size: 11px; padding: 3px 10px;
+    border-radius: 20px; font-weight: 700;
+    flex-shrink: 0; margin-top: 2px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .badge-wait    { background: var(--surface); color: var(--muted); }
+  .badge-active  { background: var(--red-light); color: var(--red); }
+  .badge-ok      { background: var(--green-bg); color: var(--green-txt); }
+  .badge-err     { background: var(--danger-bg); color: var(--danger-txt); }
+  .badge-info    { background: var(--blue-bg); color: var(--blue-txt); }
 
   /* ── Drop zone ── */
   .drop-zone {
-    border: 2px dashed var(--pastel-blue2);
-    border-radius: 6px;
-    padding: 2rem 1.5rem;
-    text-align: center;
-    cursor: pointer;
-    background: var(--pastel-blue);
+    border: 2px dashed var(--blue-brd);
+    border-radius: 6px; padding: 1.5rem 1rem;
+    text-align: center; cursor: pointer;
+    background: var(--blue-bg);
     position: relative;
+    margin-top: 10px;
     transition: border-color 0.2s, background 0.2s;
   }
+  .drop-zone:hover, .drop-zone.dragover { border-color: #378ADD; background: #D0E7F8; }
+  .drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .drop-zone i     { font-size: 28px; color: var(--navy-mid); }
+  .dz-title { font-size: 13px; font-weight: 700; color: var(--navy); margin-top: 6px; }
+  .dz-sub   { font-size: 12px; color: var(--navy-mid); margin-top: 3px; }
+  .dz-sub strong { color: var(--red); }
 
-  .drop-zone:hover, .drop-zone.dragover {
-    border-color: #6B9FD4;
-    background: #C5D9F2;
+  /* ── File pill ── */
+  .file-pill {
+    display: none; align-items: center; gap: 8px;
+    background: var(--green-bg); border: 1px solid var(--green-brd);
+    border-radius: 4px; padding: 7px 12px;
+    margin-top: 8px; font-size: 12px;
+    font-family: var(--mono); color: var(--green-txt); font-weight: 700;
   }
+  .file-pill.visible { display: flex; }
 
-  .drop-zone input[type=file] {
-    position: absolute; inset: 0; opacity: 0;
-    cursor: pointer; width: 100%; height: 100%;
+  /* ── Detail chips ── */
+  .detail-row {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px; margin-top: 10px; display: none;
   }
-
-  .dz-icon { font-size: 32px; margin-bottom: 8px; }
-
-  .dz-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--navy);
+  .detail-row.visible { display: grid; }
+  .detail-chip {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 4px; padding: 8px 12px;
   }
+  .chip-label { font-size: 11px; color: var(--muted); }
+  .chip-val   { font-size: 13px; font-weight: 700; color: var(--navy); margin-top: 2px; font-family: var(--mono); }
+  .chip-val.red { color: var(--red); }
 
-  .dz-sub {
-    font-size: 12.5px;
-    color: var(--navy-mid);
-    margin-top: 4px;
+  /* ── Transform grid ── */
+  .transform-grid {
+    display: grid; grid-template-columns: 1fr 22px 1fr;
+    align-items: center; gap: 8px; margin-top: 10px; display: none;
   }
-
-  .dz-sub strong {
-    color: var(--sncf-red);
-    font-weight: 700;
+  .transform-grid.visible { display: grid; }
+  .transform-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 4px; padding: 8px 12px;
   }
+  .tb-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .tb-val   { font-size: 11.5px; font-weight: 700; color: var(--navy); font-family: var(--mono); padding: 1px 0; }
+  .transform-arrow { text-align: center; color: var(--muted); font-size: 18px; }
 
-  /* ── File badge ── */
-  .file-badge {
+  /* ── Output preview ── */
+  .output-preview {
+    margin-top: 10px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 4px;
+    padding: 10px 12px; font-family: var(--mono); font-size: 11.5px;
     display: none;
-    align-items: center;
-    gap: 8px;
-    background: var(--pastel-green);
-    border-left: 3px solid var(--pastel-green2);
-    border-radius: 4px;
-    padding: 8px 12px;
-    margin-top: 10px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-on-green);
-    font-family: 'Source Code Pro', monospace;
   }
-  .file-badge.visible { display: flex; }
-
-  /* ── Info block ── */
-  .info-block {
-    background: var(--surface);
-    border-left: 3px solid var(--sncf-red);
-    border-radius: 4px;
-    padding: 11px 14px;
-    margin-top: 1.25rem;
-    font-size: 13px;
-    color: var(--navy-mid);
-    line-height: 1.6;
-  }
-
-  .info-block strong { color: var(--navy); font-weight: 600; }
-
-  /* ── Divider ── */
-  .divider {
-    height: 1px;
-    background: var(--border);
-    margin: 1.5rem 0;
-  }
-
-  /* ── Generate button ── */
-  .btn-generate {
-    width: 100%;
-    padding: 13px;
-    background: var(--sncf-red);
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    font-size: 14px;
-    font-weight: 700;
-    font-family: 'Source Sans 3', sans-serif;
-    letter-spacing: 0.3px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: background 0.15s, transform 0.1s, opacity 0.15s;
-  }
-
-  .btn-generate:hover:not(:disabled) { background: #B8001A; }
-  .btn-generate:active:not(:disabled) { transform: scale(0.99); }
-  .btn-generate:disabled { opacity: 0.35; cursor: not-allowed; }
+  .output-preview.visible { display: block; }
+  .csv-header { color: var(--navy); font-weight: 700; border-bottom: 1px solid var(--border); padding-bottom: 6px; margin-bottom: 6px; }
+  .csv-row    { padding: 2px 0; color: var(--muted); }
+  .csv-row span { color: var(--red); }
 
   /* ── Progress ── */
-  .progress-wrap { margin-top: 12px; display: none; }
-  .progress-track {
-    height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%;
-    background: var(--sncf-red);
-    width: 0%;
-    transition: width 0.3s;
-    border-radius: 2px;
-  }
+  .progress-wrap { margin-top: 10px; display: none; }
+  .progress-track { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-fill  { height: 100%; background: var(--red); width: 0%; transition: width 0.3s; border-radius: 2px; }
 
-  /* ── Status ── */
-  .status {
-    margin-top: 10px;
-    padding: 9px 13px;
-    border-radius: 4px;
-    font-size: 12.5px;
-    display: none;
-    font-family: 'Source Code Pro', monospace;
+  /* ── Status messages ── */
+  .status-msg {
+    margin-top: 8px; padding: 8px 12px; border-radius: 4px;
+    font-size: 12px; display: none;
+    font-family: var(--mono); border-left: 3px solid transparent;
   }
-  .status.info    { background: var(--pastel-blue);  color: var(--text-on-blue);  border-left: 3px solid var(--pastel-blue2); }
-  .status.success { background: var(--pastel-green); color: var(--text-on-green); border-left: 3px solid var(--pastel-green2); }
-  .status.error   { background: var(--pastel-red);   color: var(--text-on-red);   border-left: 3px solid #F4A0A8; }
+  .status-msg.info    { background: var(--blue-bg);   color: var(--blue-txt);   border-color: var(--blue-brd); }
+  .status-msg.success { background: var(--green-bg);  color: var(--green-txt);  border-color: var(--green-brd); }
+  .status-msg.error   { background: var(--danger-bg); color: var(--danger-txt); border-color: var(--danger-brd); }
 
-  /* ── Download button ── */
-  .btn-download {
-    width: 100%;
-    margin-top: 10px;
-    padding: 12px;
-    background: var(--pastel-green);
-    color: var(--text-on-green);
-    border: 1.5px solid var(--pastel-green2);
-    border-radius: 5px;
-    font-size: 14px;
-    font-weight: 700;
-    font-family: 'Source Sans 3', sans-serif;
-    cursor: pointer;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+  /* ── Buttons ── */
+  .btn-red {
+    width: 100%; margin-top: 10px; padding: 11px;
+    background: var(--red); color: #fff;
+    border: none; border-radius: 5px;
+    font-size: 13px; font-weight: 700;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    cursor: pointer; display: flex; align-items: center;
+    justify-content: center; gap: 8px;
+    transition: background 0.15s, transform 0.1s, opacity 0.15s;
+  }
+  .btn-red:hover:not(:disabled) { background: var(--red-dark); }
+  .btn-red:active:not(:disabled) { transform: scale(0.99); }
+  .btn-red:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .btn-dl {
+    width: 100%; margin-top: 8px; padding: 11px;
+    background: var(--green-bg); color: var(--green-txt);
+    border: 1.5px solid var(--green-brd); border-radius: 5px;
+    font-size: 13px; font-weight: 700;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    cursor: pointer; display: none; align-items: center;
+    justify-content: center; gap: 8px; text-decoration: none;
     transition: background 0.15s;
-    text-decoration: none;
   }
-
-  .btn-download:hover { background: #C2E8D0; }
-  .btn-download.visible { display: flex; }
+  .btn-dl:hover { background: #C8EAD5; }
+  .btn-dl.visible { display: flex; }
 
   /* ── Footer ── */
   .footer-band {
-    background: var(--navy);
-    padding: 10px 2rem;
-    text-align: center;
-    font-size: 11px;
-    color: rgba(255,255,255,0.45);
-    letter-spacing: 0.2px;
+    background: var(--navy); padding: 10px 1.5rem;
+    text-align: center; font-size: 11px;
+    color: rgba(255,255,255,0.45); letter-spacing: 0.2px;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
   }
+  .footer-band i { font-size: 13px; color: rgba(255,255,255,0.4); }
 </style>
 </head>
 <body>
@@ -261,70 +255,210 @@
 <div class="card">
 
   <div class="header-band">
-    <div class="logo-wrap">🏷️</div>
-    <div class="header-text">
-      <h1>Générateur d'import de prix RFX</h1>
-      <p>Outil de transformation — Logistique Méthodes</p>
+    <div class="header-icon"><i class="ti ti-tag"></i></div>
+    <div>
+      <div class="header-title">Générateur d'import de prix RFX</div>
+      <div class="header-sub">Outil de transformation — Logistique Méthodes</div>
     </div>
   </div>
 
   <div class="body">
+    <div class="pipeline" id="pipeline">
 
-    <div class="drop-zone" id="dropZone">
-      <input type="file" id="fileInput" accept=".xlsx,.xls" />
-      <div class="dz-icon">📂</div>
-      <div class="dz-title">Déposez votre fichier Excel ici</div>
-      <div class="dz-sub">ou cliquez pour parcourir — le nom doit commencer par <strong>2008</strong></div>
+      <!-- ── Étape 1 : Chargement ── -->
+      <div class="step-row">
+        <div class="step-connector">
+          <div class="step-dot active" id="dot1">1</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-card active" id="card1">
+          <div class="step-head">
+            <div class="step-head-text">
+              <div class="step-label">Étape 1 / 4</div>
+              <div class="step-title">Chargement du fichier source</div>
+            </div>
+            <div class="step-badge badge-active" id="badge1">En attente</div>
+          </div>
+          <div class="step-desc">
+            Déposez l'extraction ERP au format Excel. Le nom du fichier doit commencer par <strong style="color:var(--red);">2008</strong>. Le fichier est traité entièrement en local.
+          </div>
+
+          <div class="drop-zone" id="dropZone">
+            <input type="file" id="fileInput" accept=".xlsx,.xls" />
+            <i class="ti ti-file-spreadsheet"></i>
+            <div class="dz-title">Déposez votre fichier Excel ici</div>
+            <div class="dz-sub">ou cliquez pour parcourir — commence par <strong>2008</strong></div>
+          </div>
+
+          <div class="file-pill" id="filePill">
+            <i class="ti ti-check"></i>
+            <span id="fileName"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Étape 2 : Validation ── -->
+      <div class="step-row">
+        <div class="step-connector">
+          <div class="step-dot" id="dot2">2</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-card inactive" id="card2">
+          <div class="step-head">
+            <div class="step-head-text">
+              <div class="step-label">Étape 2 / 4</div>
+              <div class="step-title">Validation de la structure</div>
+            </div>
+            <div class="step-badge badge-wait" id="badge2">En attente</div>
+          </div>
+          <div class="step-desc">
+            Vérification du nombre de colonnes, présence de la colonne <code style="font-family:var(--mono);font-size:11.5px;">CD (82)</code> et du préfixe du nom de fichier.
+          </div>
+
+          <div class="detail-row" id="validDetail">
+            <div class="detail-chip">
+              <div class="chip-label">Colonnes détectées</div>
+              <div class="chip-val" id="colCount">—</div>
+            </div>
+            <div class="detail-chip">
+              <div class="chip-label">Lignes de données</div>
+              <div class="chip-val" id="rowCount">—</div>
+            </div>
+            <div class="detail-chip">
+              <div class="chip-label">Colonne B — code article</div>
+              <div class="chip-val">col. 2</div>
+            </div>
+            <div class="detail-chip">
+              <div class="chip-label">Colonne CD — prix</div>
+              <div class="chip-val red">col. 82</div>
+            </div>
+          </div>
+
+          <div class="status-msg" id="validStatus"></div>
+        </div>
+      </div>
+
+      <!-- ── Étape 3 : Transformation ── -->
+      <div class="step-row">
+        <div class="step-connector">
+          <div class="step-dot" id="dot3">3</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-card inactive" id="card3">
+          <div class="step-head">
+            <div class="step-head-text">
+              <div class="step-label">Étape 3 / 4</div>
+              <div class="step-title">Transformation des données</div>
+            </div>
+            <div class="step-badge badge-wait" id="badge3">En attente</div>
+          </div>
+          <div class="step-desc">
+            Extraction des colonnes B et CD, formatage des prix sur 3 décimales (séparateur virgule), injection des champs fixes <code style="font-family:var(--mono);font-size:11.5px;">Activité = NE1</code> et <code style="font-family:var(--mono);font-size:11.5px;">Variante = 10</code>.
+          </div>
+
+          <div class="transform-grid" id="transformDetail">
+            <div class="transform-box">
+              <div class="tb-label">Source ERP</div>
+              <div class="tb-val">Col. B → Code Article</div>
+              <div class="tb-val">Col. CD → Prix brut</div>
+            </div>
+            <div class="transform-arrow"><i class="ti ti-arrow-right"></i></div>
+            <div class="transform-box">
+              <div class="tb-label">Reflex CSV</div>
+              <div class="tb-val">Activité = NE1</div>
+              <div class="tb-val">Variante = 10</div>
+              <div class="tb-val">Prix = 0,000</div>
+            </div>
+          </div>
+
+          <div class="progress-wrap" id="progressWrap">
+            <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+          </div>
+
+          <div class="status-msg" id="transformStatus"></div>
+
+          <button class="btn-red" id="btnGenerate" disabled>
+            <i class="ti ti-settings"></i>
+            Lancer la transformation
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Étape 4 : Export ── -->
+      <div class="step-row">
+        <div class="step-connector">
+          <div class="step-dot" id="dot4">4</div>
+        </div>
+        <div class="step-card inactive" id="card4">
+          <div class="step-head">
+            <div class="step-head-text">
+              <div class="step-label">Étape 4 / 4</div>
+              <div class="step-title">Export CSV — Reflex</div>
+            </div>
+            <div class="step-badge badge-wait" id="badge4">En attente</div>
+          </div>
+          <div class="step-desc">
+            Génération du fichier <code style="font-family:var(--mono);font-size:11.5px;">Export_Articles.csv</code> avec BOM UTF-8, séparateur point-virgule, prêt pour l'intégration Reflex.
+          </div>
+
+          <div class="output-preview" id="outputPreview">
+            <div class="csv-header">Activité;Code Article;Variante Logistique;Prix</div>
+            <div class="csv-row"><span>NE1</span>;[article];10;<span id="prixEx">0,000</span></div>
+            <div class="csv-row" style="opacity:0.5;">NE1;...;10;...</div>
+          </div>
+
+          <div class="detail-row" id="exportDetail">
+            <div class="detail-chip">
+              <div class="chip-label">Lignes exportées</div>
+              <div class="chip-val red" id="exportCount">—</div>
+            </div>
+            <div class="detail-chip">
+              <div class="chip-label">Encodage</div>
+              <div class="chip-val">UTF-8 BOM</div>
+            </div>
+          </div>
+
+          <div class="status-msg" id="exportStatus"></div>
+
+          <a class="btn-dl" id="downloadBtn" download="Export_Articles.csv">
+            <i class="ti ti-download"></i>
+            Télécharger Export_Articles.csv
+          </a>
+        </div>
+      </div>
+
     </div>
-
-    <div class="file-badge" id="fileBadge">
-      ✓ <span id="fileName"></span>
-    </div>
-
-    <div class="info-block">
-      Convertit l'extraction des prix depuis l'<strong>ERP</strong> vers le fichier d'intégration <strong>Reflex</strong>.
-      Prix formatés sur <strong>3 décimales</strong>, séparateur virgule.
-    </div>
-
-    <div class="divider"></div>
-
-    <button class="btn-generate" id="btnGenerate" disabled>
-      ⚙️ &nbsp;Générer Export_Articles.csv
-    </button>
-
-    <div class="progress-wrap" id="progressWrap">
-      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-    </div>
-
-    <div class="status" id="statusBar"></div>
-
-    <a class="btn-download" id="downloadBtn" download="Export_Articles.csv">
-      ↓ &nbsp;Télécharger Export_Articles.csv
-    </a>
-
   </div>
 
-  <div class="footer-band">100 % local — aucune donnée transmise sur internet</div>
+  <div class="footer-band">
+    <i class="ti ti-lock"></i>
+    100 % local — aucune donnée transmise sur internet
+  </div>
 
 </div>
 
 <script>
 const fileInput    = document.getElementById('fileInput');
 const dropZone     = document.getElementById('dropZone');
-const fileBadge    = document.getElementById('fileBadge');
+const filePill     = document.getElementById('filePill');
 const fileNameEl   = document.getElementById('fileName');
 const btnGenerate  = document.getElementById('btnGenerate');
 const progressWrap = document.getElementById('progressWrap');
 const progressFill = document.getElementById('progressFill');
-const statusBar    = document.getElementById('statusBar');
 const downloadBtn  = document.getElementById('downloadBtn');
 
 let workbookData = null;
 
-function showStatus(msg, type) {
-  statusBar.textContent = msg;
-  statusBar.className = 'status ' + type;
-  statusBar.style.display = 'block';
+/* ── Helpers ── */
+function showMsg(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'status-msg ' + type;
+  el.style.display = 'block';
+}
+
+function hideMsg(id) {
+  document.getElementById(id).style.display = 'none';
 }
 
 function setProgress(pct) {
@@ -333,8 +467,39 @@ function setProgress(pct) {
   if (pct >= 100) setTimeout(() => { progressWrap.style.display = 'none'; }, 700);
 }
 
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+/* ── Pipeline state ── */
+function setStep(active) {
+  for (let i = 1; i <= 4; i++) {
+    const card = document.getElementById('card' + i);
+    const dot  = document.getElementById('dot'  + i);
+    card.classList.remove('active', 'done', 'inactive', 'error');
+    dot.classList.remove('active', 'done', 'error');
+    if (i < active) {
+      card.classList.add('done');
+      dot.classList.add('done');
+    } else if (i === active) {
+      card.classList.add('active');
+      dot.classList.add('active');
+    } else {
+      card.classList.add('inactive');
+    }
+  }
+}
+
+function setCardError(n) {
+  document.getElementById('card' + n).classList.add('error');
+  document.getElementById('dot'  + n).classList.add('error');
+}
+
+function setBadge(n, text, type) {
+  const b = document.getElementById('badge' + n);
+  b.textContent = text;
+  b.className = 'step-badge badge-' + type;
+}
+
+/* ── File handling ── */
+dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', ()  => dropZone.classList.remove('dragover'));
 dropZone.addEventListener('drop', e => {
   e.preventDefault();
   dropZone.classList.remove('dragover');
@@ -344,55 +509,83 @@ fileInput.addEventListener('change', () => { if (fileInput.files[0]) handleFile(
 
 function handleFile(file) {
   const name = file.name;
-  downloadBtn.classList.remove('visible');
-  statusBar.style.display = 'none';
 
+  /* reset */
+  downloadBtn.classList.remove('visible');
+  ['validStatus','transformStatus','exportStatus'].forEach(hideMsg);
+  document.getElementById('validDetail').classList.remove('visible');
+  document.getElementById('transformDetail').classList.remove('visible');
+  document.getElementById('outputPreview').classList.remove('visible');
+  document.getElementById('exportDetail').classList.remove('visible');
+  btnGenerate.disabled = true;
+  workbookData = null;
+  setStep(1);
+
+  /* nom de fichier */
   if (!name.match(/^2008/i)) {
-    showStatus('⚠ Le nom du fichier doit commencer par "2008". Reçu : ' + name, 'error');
-    btnGenerate.disabled = true;
+    setStep(2); setCardError(2);
+    setBadge(2, 'Erreur', 'err');
+    showMsg('validStatus', '⚠ Le nom doit commencer par "2008". Reçu : ' + name, 'error');
     return;
   }
   if (!name.match(/\.(xlsx|xls)$/i)) {
-    showStatus('⚠ Format non supporté. Utilisez un fichier .xlsx ou .xls.', 'error');
+    showMsg('validStatus', '⚠ Format non supporté. Utilisez .xlsx ou .xls.', 'error');
     return;
   }
 
   fileNameEl.textContent = name;
-  fileBadge.classList.add('visible');
-  showStatus('Lecture du fichier…', 'info');
-  setProgress(20);
+  filePill.classList.add('visible');
+  setBadge(1, 'Chargement…', 'info');
 
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
       const data = new Uint8Array(e.target.result);
-      const wb = XLSX.read(data, { type: 'array' });
+      const wb   = XLSX.read(data, { type: 'array' });
       workbookData = wb;
-      setProgress(60);
-      const ws = wb.Sheets[wb.SheetNames[0]];
+
+      const ws    = wb.Sheets[wb.SheetNames[0]];
       const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+
+      setBadge(1, 'Chargé', 'ok');
+      setStep(2);
+      setBadge(2, 'Validation…', 'info');
+
+      document.getElementById('colCount').textContent = range.e.c + 1;
+      document.getElementById('rowCount').textContent = range.e.r;
+      document.getElementById('validDetail').classList.add('visible');
+
       if (range.e.c < 81) {
-        showStatus('⚠ ' + (range.e.c + 1) + ' colonnes trouvées — colonne CD (82) introuvable.', 'error');
-        setProgress(0); progressWrap.style.display = 'none';
-        btnGenerate.disabled = true;
+        setCardError(2);
+        setBadge(2, 'Erreur', 'err');
+        showMsg('validStatus', '⚠ ' + (range.e.c + 1) + ' colonnes — colonne CD (82) introuvable.', 'error');
         return;
       }
-      setProgress(100);
-      showStatus('✓ Fichier chargé — ' + range.e.r + ' lignes détectées.', 'success');
-      btnGenerate.disabled = false;
+
+      showMsg('validStatus', '✓ Structure valide — ' + range.e.r + ' lignes, ' + (range.e.c + 1) + ' colonnes.', 'success');
+      setBadge(2, 'Valide', 'ok');
+
+      setTimeout(() => {
+        setStep(3);
+        setBadge(3, 'Prêt', 'active');
+        document.getElementById('transformDetail').classList.add('visible');
+        btnGenerate.disabled = false;
+      }, 350);
+
     } catch(err) {
-      showStatus('Erreur de lecture : ' + err.message, 'error');
-      progressWrap.style.display = 'none';
+      showMsg('validStatus', 'Erreur de lecture : ' + err.message, 'error');
     }
   };
   reader.readAsArrayBuffer(file);
 }
 
+/* ── Generate ── */
 btnGenerate.addEventListener('click', () => {
   if (!workbookData) return;
-  showStatus('Génération en cours…', 'info');
-  setProgress(10);
-  downloadBtn.classList.remove('visible');
+  btnGenerate.disabled = true;
+  setBadge(3, 'En cours…', 'info');
+  showMsg('transformStatus', 'Transformation en cours…', 'info');
+  setProgress(15);
 
   setTimeout(() => {
     try {
@@ -414,8 +607,8 @@ btnGenerate.addEventListener('click', () => {
         return s;
       }
 
+      setProgress(35);
       const rows = [["Activité", "Code Article", "Variante Logistique", "Prix"]];
-      setProgress(30);
 
       for (let r = 1; r <= range.e.r; r++) {
         const cellB  = ws_src[XLSX.utils.encode_cell({ r, c: COL_B  })];
@@ -428,18 +621,32 @@ btnGenerate.addEventListener('click', () => {
 
       setProgress(70);
 
-      const csvLines = rows.map(row => row.map(csvEscape).join(';'));
+      const csvLines   = rows.map(row => row.map(csvEscape).join(';'));
       const csvContent = '\uFEFF' + csvLines.join('\r\n');
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      downloadBtn.href = URL.createObjectURL(blob);
-      downloadBtn.download = 'Export_Articles.csv';
-      downloadBtn.classList.add('visible');
+      const blob       = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
 
       setProgress(100);
-      showStatus('✓ ' + (rows.length - 1) + ' lignes exportées avec succès.', 'success');
+      showMsg('transformStatus', '✓ ' + (rows.length - 1) + ' lignes transformées.', 'success');
+      setBadge(3, 'Terminé', 'ok');
+
+      const firstPrix = rows.length > 1 ? rows[1][3] : '0,000';
+      document.getElementById('prixEx').textContent = firstPrix;
+      document.getElementById('exportCount').textContent = (rows.length - 1) + ' lignes';
+
+      setTimeout(() => {
+        setStep(4);
+        setBadge(4, 'Prêt', 'ok');
+        document.getElementById('outputPreview').classList.add('visible');
+        document.getElementById('exportDetail').classList.add('visible');
+        downloadBtn.href = URL.createObjectURL(blob);
+        downloadBtn.classList.add('visible');
+        showMsg('exportStatus', '✓ Fichier prêt — Export_Articles.csv', 'success');
+      }, 400);
+
     } catch(err) {
-      showStatus('Erreur : ' + err.message, 'error');
-      progressWrap.style.display = 'none';
+      showMsg('transformStatus', 'Erreur : ' + err.message, 'error');
+      setCardError(3);
+      setBadge(3, 'Erreur', 'err');
     }
   }, 80);
 });

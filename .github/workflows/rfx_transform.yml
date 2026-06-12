@@ -1,0 +1,38 @@
+name: Transformation RFX — ERP → Reflex CSV
+
+on:
+  workflow_dispatch:
+    inputs:
+      gdrive_url:
+        description: 'URL du fichier Google Drive'
+        required: true
+        type: string
+
+jobs:
+  transform:
+    name: Générer Export_Articles.csv
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout du repo
+        uses: actions/checkout@v4
+
+      - name: Installer Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Installer les dépendances
+        run: pip install openpyxl requests
+
+      - name: Télécharger + Transformer
+        env:
+          GDRIVE_URL: ${{ inputs.gdrive_url }}
+        run: python scripts/transform.py
+
+      - name: Publier Export_Articles.csv
+        uses: actions/upload-artifact@v4
+        with:
+          name: Export_Articles
+          path: output/Export_Articles.csv
+          retention-days: 7

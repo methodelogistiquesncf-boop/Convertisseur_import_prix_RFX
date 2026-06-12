@@ -179,6 +179,7 @@
   }
   .tb-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
   .tb-val   { font-size: 11.5px; font-weight: 700; color: var(--navy); font-family: var(--mono); padding: 1px 0; }
+  .tb-val.filter { color: var(--red); }
   .transform-arrow { text-align: center; color: var(--muted); font-size: 18px; }
 
   .output-preview {
@@ -257,7 +258,7 @@
             <div class="step-badge badge-active" id="badge1">En attente</div>
           </div>
           <div class="step-desc">
-            Déposez l'extraction ERP au format Excel.  Le fichier est traité entièrement en local.
+            Déposez l'extraction ERP au format Excel. Le fichier est traité entièrement en local.
           </div>
 
           <div class="drop-zone" id="dropZone">
@@ -301,12 +302,13 @@
             <div class="step-badge badge-wait" id="badge3">En attente</div>
           </div>
           <div class="step-desc">
-          Cette étape est l'étape de traitement entre le fichier source et le fichier de sortie qui sera injecté dans RFX.
+            Filtre sur la colonne A (<code style="font-family:var(--mono);font-size:11px;">5322A</code> ou <code style="font-family:var(--mono);font-size:11px;">5322D</code>), puis extraction des colonnes B et CD vers le fichier Reflex.
           </div>
 
           <div class="transform-grid" id="transformDetail">
             <div class="transform-box">
               <div class="tb-label">Source ERP</div>
+              <div class="tb-val filter">Col. A = 5322A | 5322D</div>
               <div class="tb-val">Col. B → Code Article</div>
               <div class="tb-val">Col. CD → Prix brut</div>
             </div>
@@ -356,8 +358,16 @@
               <div class="chip-val red" id="exportCount">—</div>
             </div>
             <div class="detail-chip">
+              <div class="chip-label">Lignes filtrées (col. A)</div>
+              <div class="chip-val" id="filteredCount">—</div>
+            </div>
+            <div class="detail-chip">
               <div class="chip-label">Encodage</div>
               <div class="chip-val">UTF-8 BOM</div>
+            </div>
+            <div class="detail-chip">
+              <div class="chip-label">Filtre actif</div>
+              <div class="chip-val" style="color:var(--red);font-size:11px;">5322A | 5322D</div>
             </div>
           </div>
 
@@ -389,6 +399,9 @@ const progressWrap = document.getElementById('progressWrap');
 const progressFill = document.getElementById('progressFill');
 const downloadBtn  = document.getElementById('downloadBtn');
 
+// Valeurs autorisées pour le filtre colonne A
+const FILTER_VALUES = ['5322A', '5322D'];
+
 let workbookData = null;
 
 function showMsg(id, msg, type) {
@@ -410,10 +423,9 @@ function setProgress(pct) {
 
 /* Pipeline — on gère 1, 3, 4 (2 est caché) */
 function setStep(active) {
-  const map = { 1: 1, 2: 3, 3: 4 }; // visible step → real card id
   const steps = [1, 3, 4];
   steps.forEach((cardId, idx) => {
-    const visIdx = idx + 1; // 1, 2, 3
+    const visIdx = idx + 1;
     const card = document.getElementById('card' + cardId);
     const dot  = document.getElementById('dot'  + cardId);
     card.classList.remove('active', 'done', 'inactive', 'error');
@@ -487,7 +499,7 @@ function handleFile(file) {
       const ws    = wb.Sheets[wb.SheetNames[0]];
       const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
 
-      /* Validation silencieuse */
+      /* Validation : colonne CD (index 81) doit exister */
       if (range.e.c < 81) {
         setCardError(1);
         setBadge(1, 'Erreur', 'err');
@@ -521,8 +533,9 @@ function runTransform() {
     try {
       const ws_src = workbookData.Sheets[workbookData.SheetNames[0]];
       const range  = XLSX.utils.decode_range(ws_src['!ref']);
-      const COL_B  = 1;
-      const COL_CD = 81;
+      const COL_A  = 0;   // Colonne A — filtre
+      const COL_B  = 1;   // Colonne B — Code Article
+      const COL_CD = 81;  // Colonne CD — Prix
 
       function formatPrix(val) {
         if (val === null || val === undefined || val === '') return '';
@@ -539,29 +552,60 @@ function runTransform() {
 
       setProgress(35);
       const rows = [["Activité", "Code Article", "Variante Logistique", "Prix"]];
+      let totalRows   = 0; // lignes lues (hors entête)
+      let filteredOut = 0; // lignes ignorées car col A ne correspond pas
 
       for (let r = 1; r <= range.e.r; r++) {
+        const cellA  = ws_src[XLSX.utils.encode_cell({ r, c: COL_A  })];
         const cellB  = ws_src[XLSX.utils.encode_cell({ r, c: COL_B  })];
         const cellCD = ws_src[XLSX.utils.encode_cell({ r, c: COL_CD })];
-        const valB   = cellB  ? cellB.v  : null;
-        const valCD  = cellCD ? cellCD.v : null;
-        if (valB === null && valCD === null) continue;
+
+        const valA  = cellA  ? String(cellA.v).trim()  : '';
+        const valB  = cellB  ? cellB.v  : null;
+        const valCD = cellCD ? cellCD.v : null;
+
+        // Ignorer les lignes complètement vides
+        if (!valA && valB === null && valCD === null) continue;
+
+        totalRows++;
+
+        // Filtre colonne A : garder uniquement 5322A ou 5322D
+        if (!FILTER_VALUES.includes(valA)) {
+          filteredOut++;
+          continue;
+        }
+
         rows.push(["NE1", valB, "10", formatPrix(valCD)]);
       }
 
       setProgress(70);
+
+      const exported = rows.length - 1; // sans entête
+
+      // Avertissement si aucune ligne ne correspond au filtre
+      if (exported === 0) {
+        showMsg('transformStatus',
+          '⚠ Aucune ligne avec col. A = "5322A" ou "5322D" trouvée (' + totalRows + ' lignes lues).',
+          'error');
+        setCardError(3);
+        setBadge(3, 'Erreur', 'err');
+        return;
+      }
 
       const csvLines   = rows.map(row => row.map(csvEscape).join(';'));
       const csvContent = '\uFEFF' + csvLines.join('\r\n');
       const blob       = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
 
       setProgress(100);
-      showMsg('transformStatus', '✓ ' + (rows.length - 1) + ' lignes transformées.', 'success');
+      showMsg('transformStatus',
+        '✓ ' + exported + ' ligne(s) retenues sur ' + totalRows + ' lues (' + filteredOut + ' filtrées).',
+        'success');
       setBadge(3, 'Terminé', 'ok');
 
       const firstPrix = rows.length > 1 ? rows[1][3] : '0,000';
       document.getElementById('prixEx').textContent = firstPrix;
-      document.getElementById('exportCount').textContent = (rows.length - 1) + ' lignes';
+      document.getElementById('exportCount').textContent  = exported + ' ligne(s)';
+      document.getElementById('filteredCount').textContent = filteredOut + ' ignorée(s)';
 
       setTimeout(() => {
         setStep(3);

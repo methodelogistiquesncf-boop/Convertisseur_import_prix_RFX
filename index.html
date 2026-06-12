@@ -4,15 +4,13 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Import Prix RFX</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
     --red:        #E2001A;
     --red-light:  #FFF0F0;
-    --red-dark:   #B8001A;
     --bg:         #F2F4F8;
     --white:      #FFFFFF;
     --surface:    #F0F2F7;
@@ -31,117 +29,78 @@
     --danger-txt: #8B0010;
     --mono:       'Courier New', monospace;
   }
-
   body {
     font-family: 'Segoe UI', Arial, sans-serif;
     background: var(--bg);
     min-height: 100vh;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
+    display: flex; align-items: flex-start; justify-content: center;
     padding: 2rem 1rem;
   }
-
   .card {
     background: var(--white);
     border-top: 4px solid var(--red);
     box-shadow: 0 2px 16px rgba(28,43,74,0.10);
-    width: 100%;
-    max-width: 560px;
-    overflow: hidden;
+    width: 100%; max-width: 580px; overflow: hidden;
   }
-
   .header-band {
-    background: var(--red);
-    padding: 1.25rem 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    background: var(--red); padding: 1.25rem 1.5rem;
+    display: flex; align-items: center; gap: 12px;
   }
   .header-icon {
-    width: 42px; height: 42px;
-    background: rgba(255,255,255,0.18);
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
+    width: 42px; height: 42px; background: rgba(255,255,255,0.18);
+    border-radius: 8px; display: flex; align-items: center; justify-content: center;
   }
   .header-icon i { color: #fff; font-size: 22px; }
-  .header-title { font-size: 16px; font-weight: 700; color: #fff; line-height: 1.3; }
+  .header-title { font-size: 16px; font-weight: 700; color: #fff; }
   .header-sub   { font-size: 12px; color: rgba(255,255,255,0.72); margin-top: 2px; }
-
   .body { padding: 1.5rem; }
-
   .pipeline { display: flex; flex-direction: column; }
-
-  .step-row { display: flex; align-items: stretch; gap: 0; }
-
-  .step-connector {
-    display: flex; flex-direction: column; align-items: center;
-    width: 44px; flex-shrink: 0;
-  }
+  .step-row { display: flex; align-items: stretch; }
+  .step-connector { display: flex; flex-direction: column; align-items: center; width: 44px; flex-shrink: 0; }
   .step-dot {
     width: 30px; height: 30px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 700; flex-shrink: 0;
-    transition: background 0.3s, color 0.3s, border-color 0.3s;
-    border: 2px solid var(--border);
-    background: var(--surface);
-    color: var(--muted);
+    font-size: 12px; font-weight: 700;
+    border: 2px solid var(--border); background: var(--surface); color: var(--muted);
+    transition: all 0.3s;
   }
-  .step-dot.active  { background: var(--red-light); color: var(--red); border-color: var(--red); }
-  .step-dot.done    { background: var(--green-bg); color: var(--green-txt); border-color: var(--green-brd); }
-  .step-dot.error   { background: var(--danger-bg); color: var(--danger-txt); border-color: var(--danger-brd); }
-
+  .step-dot.active { background: var(--red-light); color: var(--red); border-color: var(--red); }
+  .step-dot.done   { background: var(--green-bg); color: var(--green-txt); border-color: var(--green-brd); }
+  .step-dot.error  { background: var(--danger-bg); color: var(--danger-txt); border-color: var(--danger-brd); }
   .step-line { width: 2px; flex: 1; background: var(--border); min-height: 12px; }
-
   .step-card {
-    flex: 1;
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 1rem 1.25rem;
-    margin-left: 12px;
-    margin-bottom: 12px;
-    transition: opacity 0.3s, border-color 0.3s;
+    flex: 1; background: var(--white); border: 1px solid var(--border);
+    border-radius: 6px; padding: 1rem 1.25rem;
+    margin-left: 12px; margin-bottom: 12px; transition: all 0.3s;
   }
   .step-card.inactive { opacity: 0.4; }
   .step-card.active   { border-color: var(--red); }
   .step-card.done     { border-color: var(--green-brd); }
   .step-card.error    { border-color: var(--danger-brd); }
-
-  /* Étape 2 masquée */
-  #step2-row { display: none; }
-
   .step-head { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
   .step-head-text { flex: 1; }
   .step-label { font-size: 10.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); }
   .step-title { font-size: 14px; font-weight: 700; color: var(--navy); margin-top: 1px; }
   .step-desc  { font-size: 12.5px; color: var(--navy-mid); line-height: 1.55; margin-top: 6px; }
-
   .step-badge {
-    font-size: 11px; padding: 3px 10px;
-    border-radius: 20px; font-weight: 700;
-    flex-shrink: 0; margin-top: 2px;
-    transition: background 0.2s, color 0.2s;
+    font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 700;
+    flex-shrink: 0; margin-top: 2px; transition: all 0.2s;
   }
-  .badge-wait    { background: var(--surface); color: var(--muted); }
-  .badge-active  { background: var(--red-light); color: var(--red); }
-  .badge-ok      { background: var(--green-bg); color: var(--green-txt); }
-  .badge-err     { background: var(--danger-bg); color: var(--danger-txt); }
-  .badge-info    { background: var(--blue-bg); color: var(--blue-txt); }
+  .badge-wait   { background: var(--surface); color: var(--muted); }
+  .badge-active { background: var(--red-light); color: var(--red); }
+  .badge-ok     { background: var(--green-bg); color: var(--green-txt); }
+  .badge-err    { background: var(--danger-bg); color: var(--danger-txt); }
+  .badge-info   { background: var(--blue-bg); color: var(--blue-txt); }
 
+  /* Drop zone */
   .drop-zone {
-    border: 2px dashed var(--blue-brd);
-    border-radius: 6px; padding: 1.5rem 1rem;
-    text-align: center; cursor: pointer;
-    background: var(--blue-bg);
-    position: relative;
-    margin-top: 10px;
-    transition: border-color 0.2s, background 0.2s;
+    border: 2px dashed var(--blue-brd); border-radius: 6px; padding: 1.5rem 1rem;
+    text-align: center; cursor: pointer; background: var(--blue-bg);
+    position: relative; margin-top: 10px; transition: all 0.2s;
   }
   .drop-zone:hover, .drop-zone.dragover { border-color: #378ADD; background: #D0E7F8; }
   .drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-  .drop-zone i     { font-size: 28px; color: var(--navy-mid); }
+  .drop-zone i { font-size: 28px; color: var(--navy-mid); }
   .dz-title { font-size: 13px; font-weight: 700; color: var(--navy); margin-top: 6px; }
   .dz-sub   { font-size: 12px; color: var(--navy-mid); margin-top: 3px; }
   .dz-sub strong { color: var(--red); }
@@ -149,87 +108,91 @@
   .file-pill {
     display: none; align-items: center; gap: 8px;
     background: var(--green-bg); border: 1px solid var(--green-brd);
-    border-radius: 4px; padding: 7px 12px;
-    margin-top: 8px; font-size: 12px;
-    font-family: var(--mono); color: var(--green-txt); font-weight: 700;
+    border-radius: 4px; padding: 7px 12px; margin-top: 8px;
+    font-size: 12px; font-family: var(--mono); color: var(--green-txt); font-weight: 700;
   }
   .file-pill.visible { display: flex; }
 
-  .detail-row {
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: 8px; margin-top: 10px; display: none;
+  /* Bouton Google */
+  .btn-google {
+    width: 100%; margin-top: 10px; padding: 10px;
+    background: var(--white); color: var(--navy);
+    border: 1.5px solid var(--border); border-radius: 5px;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    display: none; align-items: center; justify-content: center; gap: 10px;
+    transition: background 0.15s; font-family: 'Segoe UI', Arial, sans-serif;
   }
-  .detail-row.visible { display: grid; }
-  .detail-chip {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 4px; padding: 8px 12px;
-  }
-  .chip-label { font-size: 11px; color: var(--muted); }
-  .chip-val   { font-size: 13px; font-weight: 700; color: var(--navy); margin-top: 2px; font-family: var(--mono); }
-  .chip-val.red { color: var(--red); }
+  .btn-google:hover { background: var(--surface); }
+  .btn-google.visible { display: flex; }
+  .btn-google svg { width: 18px; height: 18px; flex-shrink: 0; }
 
-  .transform-grid {
-    display: grid; grid-template-columns: 1fr 22px 1fr;
-    align-items: center; gap: 8px; margin-top: 10px; display: none;
+  /* Bouton GitHub Actions */
+  .btn-action {
+    width: 100%; margin-top: 8px; padding: 11px;
+    background: var(--navy); color: #fff;
+    border: none; border-radius: 5px;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    display: none; align-items: center; justify-content: center; gap: 8px;
+    transition: background 0.15s; font-family: 'Segoe UI', Arial, sans-serif;
   }
-  .transform-grid.visible { display: grid; }
-  .transform-box {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 4px; padding: 8px 12px;
-  }
-  .tb-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
-  .tb-val   { font-size: 11.5px; font-weight: 700; color: var(--navy); font-family: var(--mono); padding: 1px 0; }
-  .tb-val.filter { color: var(--red); }
-  .transform-arrow { text-align: center; color: var(--muted); font-size: 18px; }
+  .btn-action:hover { background: var(--navy-mid); }
+  .btn-action.visible { display: flex; }
 
-  .output-preview {
-    margin-top: 10px; background: var(--surface);
-    border: 1px solid var(--border); border-radius: 4px;
-    padding: 10px 12px; font-family: var(--mono); font-size: 11.5px;
-    display: none;
-  }
-  .output-preview.visible { display: block; }
-  .csv-header { color: var(--navy); font-weight: 700; border-bottom: 1px solid var(--border); padding-bottom: 6px; margin-bottom: 6px; }
-  .csv-row    { padding: 2px 0; color: var(--muted); }
-  .csv-row span { color: var(--red); }
-
-  .progress-wrap { margin-top: 10px; display: none; }
-  .progress-track { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
-  .progress-fill  { height: 100%; background: var(--red); width: 0%; transition: width 0.3s; border-radius: 2px; }
-
-  .status-msg {
-    margin-top: 8px; padding: 8px 12px; border-radius: 4px;
-    font-size: 12px; display: none;
-    font-family: var(--mono); border-left: 3px solid transparent;
-  }
-  .status-msg.info    { background: var(--blue-bg);   color: var(--blue-txt);   border-color: var(--blue-brd); }
-  .status-msg.success { background: var(--green-bg);  color: var(--green-txt);  border-color: var(--green-brd); }
-  .status-msg.error   { background: var(--danger-bg); color: var(--danger-txt); border-color: var(--danger-brd); }
-
+  /* Bouton téléchargement CSV */
   .btn-dl {
     width: 100%; margin-top: 8px; padding: 11px;
     background: var(--green-bg); color: var(--green-txt);
     border: 1.5px solid var(--green-brd); border-radius: 5px;
-    font-size: 13px; font-weight: 700;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    display: none; align-items: center; justify-content: center; gap: 8px;
+    text-decoration: none; transition: background 0.15s;
     font-family: 'Segoe UI', Arial, sans-serif;
-    cursor: pointer; display: none; align-items: center;
-    justify-content: center; gap: 8px; text-decoration: none;
-    transition: background 0.15s;
   }
   .btn-dl:hover { background: #C8EAD5; }
   .btn-dl.visible { display: flex; }
 
+  .progress-wrap { margin-top: 10px; display: none; }
+  .progress-track { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-fill  { height: 100%; background: var(--red); width: 0%; transition: width 0.4s; border-radius: 2px; }
+  .progress-label { font-size: 11px; color: var(--muted); margin-top: 4px; font-family: var(--mono); }
+
+  .status-msg {
+    margin-top: 8px; padding: 8px 12px; border-radius: 4px;
+    font-size: 12px; display: none; font-family: var(--mono);
+    border-left: 3px solid transparent; line-height: 1.5;
+  }
+  .status-msg.info    { background: var(--blue-bg);   color: var(--blue-txt);   border-color: var(--blue-brd); display: block; }
+  .status-msg.success { background: var(--green-bg);  color: var(--green-txt);  border-color: var(--green-brd); display: block; }
+  .status-msg.error   { background: var(--danger-bg); color: var(--danger-txt); border-color: var(--danger-brd); display: block; }
+
+  .detail-grid {
+    display: none; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;
+  }
+  .detail-grid.visible { display: grid; }
+  .detail-chip { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 8px 12px; }
+  .chip-label { font-size: 11px; color: var(--muted); }
+  .chip-val   { font-size: 13px; font-weight: 700; color: var(--navy); margin-top: 2px; font-family: var(--mono); }
+  .chip-val.red { color: var(--red); }
+
+  .run-url {
+    display: none; margin-top: 8px; padding: 8px 12px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 4px; font-size: 12px; color: var(--navy-mid);
+    font-family: var(--mono); word-break: break-all;
+  }
+  .run-url a { color: var(--red); font-weight: 700; }
+  .run-url.visible { display: block; }
+
   .footer-band {
     background: var(--navy); padding: 10px 1.5rem;
     text-align: center; font-size: 11px;
-    color: rgba(255,255,255,0.45); letter-spacing: 0.2px;
+    color: rgba(255,255,255,0.45);
     display: flex; align-items: center; justify-content: center; gap: 6px;
   }
   .footer-band i { font-size: 13px; color: rgba(255,255,255,0.4); }
 </style>
 </head>
 <body>
-
 <div class="card">
 
   <div class="header-band">
@@ -241,9 +204,9 @@
   </div>
 
   <div class="body">
-    <div class="pipeline" id="pipeline">
+    <div class="pipeline">
 
-      <!-- Étape 1 : Chargement -->
+      <!-- ÉTAPE 1 : Fichier -->
       <div class="step-row">
         <div class="step-connector">
           <div class="step-dot active" id="dot1">1</div>
@@ -253,13 +216,11 @@
           <div class="step-head">
             <div class="step-head-text">
               <div class="step-label">Étape 1 / 3</div>
-              <div class="step-title">Chargement du fichier source</div>
+              <div class="step-title">Sélection du fichier source</div>
             </div>
             <div class="step-badge badge-active" id="badge1">En attente</div>
           </div>
-          <div class="step-desc">
-            Déposez l'extraction ERP au format Excel. Le fichier est traité entièrement en local.
-          </div>
+          <div class="step-desc">Sélectionnez l'extraction ERP au format Excel. Le nom doit commencer par <strong>2008</strong>.</div>
 
           <div class="drop-zone" id="dropZone">
             <input type="file" id="fileInput" accept=".xlsx,.xls" />
@@ -271,111 +232,88 @@
           <div class="file-pill" id="filePill">
             <i class="ti ti-check"></i>
             <span id="fileName"></span>
+            <span id="fileSize" style="margin-left:auto;opacity:0.7;"></span>
           </div>
 
-          <div class="status-msg" id="validStatus"></div>
+          <div class="status-msg" id="step1Status"></div>
         </div>
       </div>
 
-      <!-- Étape 2 masquée (validation silencieuse) -->
-      <div class="step-row" id="step2-row">
+      <!-- ÉTAPE 2 : Upload Google Drive -->
+      <div class="step-row">
         <div class="step-connector">
           <div class="step-dot" id="dot2">2</div>
           <div class="step-line"></div>
         </div>
         <div class="step-card inactive" id="card2">
+          <div class="step-head">
+            <div class="step-head-text">
+              <div class="step-label">Étape 2 / 3</div>
+              <div class="step-title">Upload vers Google Drive</div>
+            </div>
+            <div class="step-badge badge-wait" id="badge2">En attente</div>
+          </div>
+          <div class="step-desc">Connexion à votre compte Google puis envoi du fichier dans Google Drive.</div>
+
+          <button class="btn-google" id="btnGoogle" onclick="startGoogleAuth()">
+            <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            Se connecter avec Google
+          </button>
+
+          <div class="progress-wrap" id="uploadProgress">
+            <div class="progress-track"><div class="progress-fill" id="uploadFill"></div></div>
+            <div class="progress-label" id="uploadLabel">Préparation…</div>
+          </div>
+
+          <div class="status-msg" id="step2Status"></div>
         </div>
       </div>
 
-      <!-- Étape 3 : Transformation (renommée Étape 2) -->
+      <!-- ÉTAPE 3 : GitHub Actions -->
       <div class="step-row">
         <div class="step-connector">
-          <div class="step-dot" id="dot3">2</div>
-          <div class="step-line"></div>
+          <div class="step-dot" id="dot3">3</div>
         </div>
         <div class="step-card inactive" id="card3">
           <div class="step-head">
             <div class="step-head-text">
-              <div class="step-label">Étape 2 / 3</div>
-              <div class="step-title">Transformation des données</div>
+              <div class="step-label">Étape 3 / 3</div>
+              <div class="step-title">Transformation & Export CSV</div>
             </div>
             <div class="step-badge badge-wait" id="badge3">En attente</div>
           </div>
-          <div class="step-desc">
-            Filtre sur la colonne A (<code style="font-family:var(--mono);font-size:11px;">5322A</code> ou <code style="font-family:var(--mono);font-size:11px;">5322D</code>), puis extraction des colonnes B et CD vers le fichier Reflex.
-          </div>
+          <div class="step-desc">GitHub Actions télécharge le fichier, applique les filtres et génère <code style="font-family:var(--mono);font-size:11px;">Export_Articles.csv</code>.</div>
 
-          <div class="transform-grid" id="transformDetail">
-            <div class="transform-box">
-              <div class="tb-label">Source ERP</div>
-              <div class="tb-val filter">Col. A = 5322A | 5322D</div>
-              <div class="tb-val">Col. B → Code Article</div>
-              <div class="tb-val">Col. CD → Prix brut</div>
-            </div>
-            <div class="transform-arrow"><i class="ti ti-arrow-right"></i></div>
-            <div class="transform-box">
-              <div class="tb-label">Reflex CSV</div>
-              <div class="tb-val">Activité = NE1</div>
-              <div class="tb-val">Variante = 10</div>
-              <div class="tb-val">Prix = 0,000</div>
-            </div>
-          </div>
-
-          <div class="progress-wrap" id="progressWrap">
-            <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-          </div>
-
-          <div class="status-msg" id="transformStatus"></div>
-        </div>
-      </div>
-
-      <!-- Étape 4 : Export (renommée Étape 3) -->
-      <div class="step-row">
-        <div class="step-connector">
-          <div class="step-dot" id="dot4">3</div>
-        </div>
-        <div class="step-card inactive" id="card4">
-          <div class="step-head">
-            <div class="step-head-text">
-              <div class="step-label">Étape 3 / 3</div>
-              <div class="step-title">Export CSV — Reflex</div>
-            </div>
-            <div class="step-badge badge-wait" id="badge4">En attente</div>
-          </div>
-          <div class="step-desc">
-            Génération du fichier <code style="font-family:var(--mono);font-size:11.5px;">Export_Articles.csv</code> avec BOM UTF-8, séparateur point-virgule, prêt pour l'intégration Reflex.
-          </div>
-
-          <div class="output-preview" id="outputPreview">
-            <div class="csv-header">Activité;Code Article;Variante Logistique;Prix</div>
-            <div class="csv-row"><span>NE1</span>;[article];10;<span id="prixEx">0,000</span></div>
-            <div class="csv-row" style="opacity:0.5;">NE1;...;10;...</div>
-          </div>
-
-          <div class="detail-row" id="exportDetail">
+          <div class="detail-grid" id="driveDetail">
             <div class="detail-chip">
-              <div class="chip-label">Lignes exportées</div>
-              <div class="chip-val red" id="exportCount">—</div>
+              <div class="chip-label">Fichier sur Drive</div>
+              <div class="chip-val" id="driveFileName" style="font-size:11px;">—</div>
             </div>
             <div class="detail-chip">
-              <div class="chip-label">Lignes filtrées (col. A)</div>
-              <div class="chip-val" id="filteredCount">—</div>
-            </div>
-            <div class="detail-chip">
-              <div class="chip-label">Encodage</div>
-              <div class="chip-val">UTF-8 BOM</div>
-            </div>
-            <div class="detail-chip">
-              <div class="chip-label">Filtre actif</div>
-              <div class="chip-val" style="color:var(--red);font-size:11px;">5322A | 5322D</div>
+              <div class="chip-label">Taille</div>
+              <div class="chip-val red" id="driveSizeVal">—</div>
             </div>
           </div>
 
-          <div class="status-msg" id="exportStatus"></div>
+          <button class="btn-action" id="btnAction" onclick="triggerGithubAction()">
+            <i class="ti ti-player-play"></i>
+            Lancer la transformation
+          </button>
 
-          <a class="btn-dl" id="downloadBtn" download="Export_Articles.csv">
-            <i class="ti ti-download"></i>
-            Télécharger Export_Articles.csv
+          <div class="run-url" id="runUrl"></div>
+
+          <div class="progress-wrap" id="actionProgress">
+            <div class="progress-track"><div class="progress-fill" id="actionFill"></div></div>
+            <div class="progress-label" id="actionLabel">En attente du workflow…</div>
+          </div>
+
+          <div class="status-msg" id="step3Status"></div>
+
+          <a class="btn-dl" id="btnDownload"
+             href="https://github.com/methodelogistiquesncf-boop/Convertisseur_import_prix_RFX/actions"
+             target="_blank">
+            <i class="ti ti-external-link"></i>
+            Voir le résultat sur GitHub Actions
           </a>
         </div>
       </div>
@@ -385,246 +323,302 @@
 
   <div class="footer-band">
     <i class="ti ti-lock"></i>
-    100 % local — Créé par Méthode Logistique.
+    Traitement cloud sécurisé — Méthodes Logistique
   </div>
-
 </div>
 
 <script>
-const fileInput    = document.getElementById('fileInput');
-const dropZone     = document.getElementById('dropZone');
-const filePill     = document.getElementById('filePill');
-const fileNameEl   = document.getElementById('fileName');
-const progressWrap = document.getElementById('progressWrap');
-const progressFill = document.getElementById('progressFill');
-const downloadBtn  = document.getElementById('downloadBtn');
+// ═══════════════════════════════════════════════════════════
+// CONFIG — à mettre à jour si nécessaire
+// ═══════════════════════════════════════════════════════════
+const GOOGLE_CLIENT_ID = '997115009303-92aa1ks90el0a4l6v5hikji9laa3l3bf.apps.googleusercontent.com';
+const GOOGLE_SCOPE     = 'https://www.googleapis.com/auth/drive.file';
 
-// Valeurs autorisées pour le filtre colonne A
-const FILTER_VALUES = ['5322A', '5322D'];
+const GITHUB_OWNER  = 'methodelogistiquesncf-boop';
+const GITHUB_REPO   = 'Convertisseur_import_prix_RFX';
+const GITHUB_WORKFLOW = 'rfx_transform.yml';
 
-let workbookData = null;
+// Token GitHub Actions — à stocker dans un GitHub Secret
+// et exposé via une variable d'environnement dans le workflow
+// Pour déclencher le workflow depuis le navigateur,
+// vous devez fournir un Personal Access Token (PAT) avec scope "repo"
+// Créez-le sur : https://github.com/settings/tokens
+// Puis stockez-le ici (ou mieux : dans une variable d'environnement)
+const GITHUB_PAT = prompt(
+  'Entrez votre GitHub Personal Access Token (PAT)\n' +
+  'Créez-en un sur : github.com/settings/tokens\n' +
+  '(scope requis : "workflow")',
+  ''
+);
 
-function showMsg(id, msg, type) {
-  const el = document.getElementById(id);
-  el.textContent = msg;
-  el.className = 'status-msg ' + type;
-  el.style.display = 'block';
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let selectedFile    = null;
+let googleToken     = null;
+let uploadedFileId  = null;
+let uploadedFileUrl = null;
+
+// ═══════════════════════════════════════════════════════════
+// UTILITAIRES UI
+// ═══════════════════════════════════════════════════════════
+function setDot(n, state) {
+  const d = document.getElementById('dot' + n);
+  d.className = 'step-dot ' + state;
 }
-
-function hideMsg(id) {
-  document.getElementById(id).style.display = 'none';
+function setCard(n, state) {
+  const c = document.getElementById('card' + n);
+  c.className = 'step-card ' + state;
 }
-
-function setProgress(pct) {
-  progressWrap.style.display = 'block';
-  progressFill.style.width = pct + '%';
-  if (pct >= 100) setTimeout(() => { progressWrap.style.display = 'none'; }, 700);
-}
-
-/* Pipeline — on gère 1, 3, 4 (2 est caché) */
-function setStep(active) {
-  const steps = [1, 3, 4];
-  steps.forEach((cardId, idx) => {
-    const visIdx = idx + 1;
-    const card = document.getElementById('card' + cardId);
-    const dot  = document.getElementById('dot'  + cardId);
-    card.classList.remove('active', 'done', 'inactive', 'error');
-    dot.classList.remove('active', 'done', 'error');
-    if (visIdx < active) {
-      card.classList.add('done');
-      dot.classList.add('done');
-    } else if (visIdx === active) {
-      card.classList.add('active');
-      dot.classList.add('active');
-    } else {
-      card.classList.add('inactive');
-    }
-  });
-}
-
-function setCardError(n) {
-  document.getElementById('card' + n).classList.add('error');
-  document.getElementById('dot'  + n).classList.add('error');
-}
-
 function setBadge(n, text, type) {
   const b = document.getElementById('badge' + n);
   b.textContent = text;
   b.className = 'step-badge badge-' + type;
 }
+function setMsg(id, text, type) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = 'status-msg ' + type;
+}
+function clearMsg(id) {
+  const el = document.getElementById(id);
+  el.className = 'status-msg';
+  el.textContent = '';
+}
+function setProgress(fillId, labelId, pct, label) {
+  const wrap = document.getElementById(fillId).closest('.progress-wrap');
+  wrap.style.display = 'block';
+  document.getElementById(fillId).style.width = pct + '%';
+  if (labelId) document.getElementById(labelId).textContent = label || '';
+  if (pct >= 100) setTimeout(() => { wrap.style.display = 'none'; }, 800);
+}
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' o';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' Ko';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' Mo';
+}
 
-/* File handling */
+// ═══════════════════════════════════════════════════════════
+// ÉTAPE 1 : Sélection du fichier
+// ═══════════════════════════════════════════════════════════
+const dropZone  = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
 dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('dragover'); });
-dropZone.addEventListener('dragleave', ()  => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
 dropZone.addEventListener('drop', e => {
-  e.preventDefault();
-  dropZone.classList.remove('dragover');
+  e.preventDefault(); dropZone.classList.remove('dragover');
   if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
 });
 fileInput.addEventListener('change', () => { if (fileInput.files[0]) handleFile(fileInput.files[0]); });
 
 function handleFile(file) {
-  const name = file.name;
+  clearMsg('step1Status');
+  clearMsg('step2Status');
+  clearMsg('step3Status');
+  selectedFile = null;
 
-  downloadBtn.classList.remove('visible');
-  ['validStatus','transformStatus','exportStatus'].forEach(hideMsg);
-  document.getElementById('transformDetail').classList.remove('visible');
-  document.getElementById('outputPreview').classList.remove('visible');
-  document.getElementById('exportDetail').classList.remove('visible');
-  workbookData = null;
-  setStep(1);
-
-  if (!name.match(/^2008/i)) {
-    setCardError(1);
+  if (!file.name.match(/^2008/i)) {
+    setDot(1, 'error'); setCard(1, 'error active');
     setBadge(1, 'Erreur', 'err');
-    showMsg('validStatus', '⚠ Le nom doit commencer par "2008". Reçu : ' + name, 'error');
+    setMsg('step1Status', '⚠ Le nom doit commencer par "2008". Reçu : ' + file.name, 'error');
     return;
   }
-  if (!name.match(/\.(xlsx|xls)$/i)) {
-    showMsg('validStatus', '⚠ Format non supporté. Utilisez .xlsx ou .xls.', 'error');
+  if (!file.name.match(/\.(xlsx|xls)$/i)) {
+    setMsg('step1Status', '⚠ Format non supporté. Utilisez .xlsx ou .xls.', 'error');
     return;
   }
 
-  fileNameEl.textContent = name;
-  filePill.classList.add('visible');
-  setBadge(1, 'Chargement…', 'info');
+  selectedFile = file;
+  document.getElementById('fileName').textContent = file.name;
+  document.getElementById('fileSize').textContent = formatSize(file.size);
+  document.getElementById('filePill').classList.add('visible');
 
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const data = new Uint8Array(e.target.result);
-      const wb   = XLSX.read(data, { type: 'array' });
-      workbookData = wb;
+  setDot(1, 'done'); setCard(1, 'done');
+  setBadge(1, 'Sélectionné', 'ok');
 
-      const ws    = wb.Sheets[wb.SheetNames[0]];
-      const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
-
-      /* Validation : colonne CD (index 81) doit exister */
-      if (range.e.c < 81) {
-        setCardError(1);
-        setBadge(1, 'Erreur', 'err');
-        showMsg('validStatus', '⚠ ' + (range.e.c + 1) + ' colonnes — colonne CD (82) introuvable.', 'error');
-        return;
-      }
-
-      setBadge(1, 'Chargé', 'ok');
-
-      /* Lancer automatiquement la transformation */
-      setTimeout(() => {
-        setStep(2);
-        setBadge(3, 'En cours…', 'info');
-        document.getElementById('transformDetail').classList.add('visible');
-        runTransform();
-      }, 400);
-
-    } catch(err) {
-      showMsg('validStatus', 'Erreur de lecture : ' + err.message, 'error');
-    }
-  };
-  reader.readAsArrayBuffer(file);
+  // Activer étape 2
+  setDot(2, 'active'); setCard(2, 'active');
+  setBadge(2, 'Connexion requise', 'active');
+  document.getElementById('btnGoogle').classList.add('visible');
 }
 
-/* Transformation automatique */
-function runTransform() {
-  if (!workbookData) return;
-  setProgress(15);
+// ═══════════════════════════════════════════════════════════
+// ÉTAPE 2 : Google OAuth + Upload Drive
+// ═══════════════════════════════════════════════════════════
+function startGoogleAuth() {
+  if (!selectedFile) return;
 
-  setTimeout(() => {
-    try {
-      const ws_src = workbookData.Sheets[workbookData.SheetNames[0]];
-      const range  = XLSX.utils.decode_range(ws_src['!ref']);
-      const COL_A  = 0;   // Colonne A — filtre
-      const COL_B  = 1;   // Colonne B — Code Article
-      const COL_CD = 81;  // Colonne CD — Prix
-
-      function formatPrix(val) {
-        if (val === null || val === undefined || val === '') return '';
-        const num = parseFloat(String(val).replace(',', '.'));
-        if (isNaN(num)) return String(val);
-        return num.toFixed(3).replace('.', ',');
-      }
-
-      function csvEscape(v) {
-        const s = (v === null || v === undefined) ? '' : String(v);
-        if (s.includes(';') || s.includes('"') || s.includes('\n')) return '"' + s.replace(/"/g, '""') + '"';
-        return s;
-      }
-
-      setProgress(35);
-      const rows = [["Activité", "Code Article", "Variante Logistique", "Prix"]];
-      let totalRows   = 0; // lignes lues (hors entête)
-      let filteredOut = 0; // lignes ignorées car col A ne correspond pas
-
-      for (let r = 1; r <= range.e.r; r++) {
-        const cellA  = ws_src[XLSX.utils.encode_cell({ r, c: COL_A  })];
-        const cellB  = ws_src[XLSX.utils.encode_cell({ r, c: COL_B  })];
-        const cellCD = ws_src[XLSX.utils.encode_cell({ r, c: COL_CD })];
-
-        const valA  = cellA  ? String(cellA.v).trim()  : '';
-        const valB  = cellB  ? cellB.v  : null;
-        const valCD = cellCD ? cellCD.v : null;
-
-        // Ignorer les lignes complètement vides
-        if (!valA && valB === null && valCD === null) continue;
-
-        totalRows++;
-
-        // Filtre colonne A : garder uniquement 5322A ou 5322D
-        if (!FILTER_VALUES.includes(valA)) {
-          filteredOut++;
-          continue;
-        }
-
-        rows.push(["NE1", valB, "10", formatPrix(valCD)]);
-      }
-
-      setProgress(70);
-
-      const exported = rows.length - 1; // sans entête
-
-      // Avertissement si aucune ligne ne correspond au filtre
-      if (exported === 0) {
-        showMsg('transformStatus',
-          '⚠ Aucune ligne avec col. A = "5322A" ou "5322D" trouvée (' + totalRows + ' lignes lues).',
-          'error');
-        setCardError(3);
-        setBadge(3, 'Erreur', 'err');
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: GOOGLE_SCOPE,
+    callback: (tokenResponse) => {
+      if (tokenResponse.error) {
+        setMsg('step2Status', '⚠ Erreur d\'authentification : ' + tokenResponse.error, 'error');
         return;
       }
+      googleToken = tokenResponse.access_token;
+      uploadToDrive();
+    },
+  });
+  client.requestAccessToken();
+}
 
-      const csvLines   = rows.map(row => row.map(csvEscape).join(';'));
-      const csvContent = '\uFEFF' + csvLines.join('\r\n');
-      const blob       = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+async function uploadToDrive() {
+  setBadge(2, 'Upload…', 'info');
+  setProgress('uploadFill', 'uploadLabel', 10, 'Connexion à Google Drive…');
+  clearMsg('step2Status');
+  document.getElementById('btnGoogle').classList.remove('visible');
 
-      setProgress(100);
-      showMsg('transformStatus',
-        '✓ ' + exported + ' ligne(s) retenues sur ' + totalRows + ' lues (' + filteredOut + ' filtrées).',
+  try {
+    const metadata = {
+      name: selectedFile.name,
+      mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    };
+
+    // Upload multipart
+    const boundary = '-------rfxupload';
+    const delimiter = '\r\n--' + boundary + '\r\n';
+    const closeDelim = '\r\n--' + boundary + '--';
+
+    const metadataPart = 'Content-Type: application/json\r\n\r\n' + JSON.stringify(metadata);
+
+    const fileData = await selectedFile.arrayBuffer();
+
+    // Construction manuelle du body multipart
+    const encoder = new TextEncoder();
+    const metaBytes  = encoder.encode(delimiter + metadataPart + delimiter + 'Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\r\n\r\n');
+    const closeBytes = encoder.encode(closeDelim);
+
+    const body = new Uint8Array(metaBytes.byteLength + fileData.byteLength + closeBytes.byteLength);
+    body.set(metaBytes, 0);
+    body.set(new Uint8Array(fileData), metaBytes.byteLength);
+    body.set(closeBytes, metaBytes.byteLength + fileData.byteLength);
+
+    setProgress('uploadFill', 'uploadLabel', 30, 'Envoi du fichier (' + formatSize(selectedFile.size) + ')…');
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,size,webViewLink', true);
+    xhr.setRequestHeader('Authorization', 'Bearer ' + googleToken);
+    xhr.setRequestHeader('Content-Type', 'multipart/related; boundary=' + boundary);
+
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) {
+        const pct = Math.round((e.loaded / e.total) * 60) + 30;
+        setProgress('uploadFill', 'uploadLabel', pct, 'Envoi… ' + formatSize(e.loaded) + ' / ' + formatSize(e.total));
+      }
+    };
+
+    xhr.onload = async () => {
+      if (xhr.status === 200) {
+        const result = JSON.parse(xhr.responseText);
+        uploadedFileId = result.id;
+
+        setProgress('uploadFill', 'uploadLabel', 90, 'Partage du fichier…');
+
+        // Rendre le fichier accessible en lecture (pour que GitHub Actions puisse le télécharger)
+        await fetch(`https://www.googleapis.com/drive/v3/files/${uploadedFileId}/permissions`, {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + googleToken,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ role: 'reader', type: 'anyone' }),
+        });
+
+        uploadedFileUrl = `https://drive.google.com/file/d/${uploadedFileId}/view?usp=sharing`;
+
+        setProgress('uploadFill', 'uploadLabel', 100, 'Upload terminé !');
+        setBadge(2, 'Uploadé', 'ok');
+        setDot(2, 'done'); setCard(2, 'done');
+        setMsg('step2Status', '✓ Fichier déposé sur Google Drive.', 'success');
+
+        // Activer étape 3
+        setTimeout(() => activateStep3(result), 500);
+
+      } else {
+        throw new Error('HTTP ' + xhr.status + ' — ' + xhr.responseText);
+      }
+    };
+    xhr.onerror = () => { throw new Error('Erreur réseau lors de l\'upload.'); };
+
+    xhr.send(body);
+
+  } catch (err) {
+    setDot(2, 'error'); setCard(2, 'error active');
+    setBadge(2, 'Erreur', 'err');
+    setMsg('step2Status', '⚠ ' + err.message, 'error');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// ÉTAPE 3 : Déclencher GitHub Actions
+// ═══════════════════════════════════════════════════════════
+function activateStep3(driveResult) {
+  setDot(3, 'active'); setCard(3, 'active');
+  setBadge(3, 'Prêt', 'active');
+
+  document.getElementById('driveFileName').textContent = driveResult.name;
+  document.getElementById('driveSizeVal').textContent  = formatSize(parseInt(driveResult.size || 0));
+  document.getElementById('driveDetail').classList.add('visible');
+  document.getElementById('btnAction').classList.add('visible');
+}
+
+async function triggerGithubAction() {
+  if (!uploadedFileUrl) return;
+  if (!GITHUB_PAT || GITHUB_PAT.trim() === '') {
+    setMsg('step3Status', '⚠ GitHub PAT manquant. Rechargez la page et entrez votre token.', 'error');
+    return;
+  }
+
+  setBadge(3, 'Lancement…', 'info');
+  document.getElementById('btnAction').classList.remove('visible');
+  clearMsg('step3Status');
+
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/workflows/${GITHUB_WORKFLOW}/dispatches`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + GITHUB_PAT,
+          'Accept': 'application/vnd.github+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ref: 'main',
+          inputs: {
+            gdrive_url: uploadedFileUrl,
+          }
+        }),
+      }
+    );
+
+    if (res.status === 204) {
+      setBadge(3, 'Lancé ✓', 'ok');
+      setDot(3, 'done'); setCard(3, 'done');
+      setMsg('step3Status',
+        '✓ Workflow GitHub Actions déclenché ! Rendez-vous sur GitHub Actions pour suivre l\'avancement et télécharger le CSV.',
         'success');
-      setBadge(3, 'Terminé', 'ok');
 
-      const firstPrix = rows.length > 1 ? rows[1][3] : '0,000';
-      document.getElementById('prixEx').textContent = firstPrix;
-      document.getElementById('exportCount').textContent  = exported + ' ligne(s)';
-      document.getElementById('filteredCount').textContent = filteredOut + ' ignorée(s)';
+      const runUrl = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/actions`;
+      document.getElementById('runUrl').innerHTML =
+        '→ <a href="' + runUrl + '" target="_blank">Voir le workflow en cours</a>';
+      document.getElementById('runUrl').classList.add('visible');
+      document.getElementById('btnDownload').classList.add('visible');
 
-      setTimeout(() => {
-        setStep(3);
-        setBadge(4, 'Prêt', 'ok');
-        document.getElementById('outputPreview').classList.add('visible');
-        document.getElementById('exportDetail').classList.add('visible');
-        downloadBtn.href = URL.createObjectURL(blob);
-        downloadBtn.classList.add('visible');
-        showMsg('exportStatus', '✓ Fichier prêt — Export_Articles.csv', 'success');
-      }, 400);
-
-    } catch(err) {
-      showMsg('transformStatus', 'Erreur : ' + err.message, 'error');
-      setCardError(3);
-      setBadge(3, 'Erreur', 'err');
+    } else {
+      const body = await res.text();
+      throw new Error('HTTP ' + res.status + ' — ' + body);
     }
-  }, 80);
+
+  } catch (err) {
+    setDot(3, 'error'); setCard(3, 'error active');
+    setBadge(3, 'Erreur', 'err');
+    setMsg('step3Status', '⚠ ' + err.message, 'error');
+    document.getElementById('btnAction').classList.add('visible');
+  }
 }
 </script>
-
 </body>
 </html>
